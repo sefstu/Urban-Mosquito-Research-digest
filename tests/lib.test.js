@@ -1,10 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  classifyTopic,
+  hasVerifiedScholarlyIdentity,
   isDuplicate,
   isEuropeanArbovirusRecord,
   isWithinPrecedingDays,
   findLinkedPreprint,
+  matchesExclusionRules,
+  matchesSpeciesScope,
   normalizeDoi,
   normalizeTitle,
   scoreRelevance
@@ -73,4 +77,45 @@ test("links later journal articles to matching preprints", () => {
     isPreprint: false
   }, archive);
   assert.equal(linked.id, "preprint-1");
+});
+
+test("rejects placeholders and records without a DOI", () => {
+  assert.equal(hasVerifiedScholarlyIdentity({
+    title: "Urban mosquito common-garden sample record",
+    doi: "10.1000/sample",
+    source: "Local sample data"
+  }), false);
+  assert.equal(hasVerifiedScholarlyIdentity({
+    title: "A real mosquito ecology paper",
+    doi: ""
+  }), false);
+  assert.equal(hasVerifiedScholarlyIdentity({
+    title: "A real mosquito ecology paper",
+    doi: "10.1000/real-paper"
+  }), true);
+});
+
+test("prioritizes Culex, Aedes and Anopheles while retaining transferable methods", () => {
+  assert.equal(matchesSpeciesScope({
+    title: "Swimming behaviour in Culex pupae"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Mosquito eDNA surveillance in aquatic habitats"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Urban-rural common garden in great tits"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Crop yield responses in wheat"
+  }, config), false);
+});
+
+test("applies configured exclusions and refuses zero-hit topic classification", () => {
+  assert.equal(matchesExclusionRules({
+    title: "Editorial without data on mosquito control"
+  }, config.exclusionTerms), false);
+  assert.equal(classifyTopic({
+    title: "Unrelated crop chemistry",
+    abstract: ""
+  }, config), "");
 });
