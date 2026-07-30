@@ -1,0 +1,43 @@
+[
+  {
+    "title": "Urban ecology of Culex mosquitoes in experimental aquatic habitats",
+    "abstract": "We compared Culex mosquitoes across urban aquatic habitats. The experiment identified habitat-dependent differences in development and survival.",
+    "doi": "10.5555/weekly-valid-record",
+    "journal": "Journal of Mosquito Ecology",
+    "authors": ["Test Author"],
+    "publishedOnline": "2026-07-24",
+    "openAccess": true,
+    "source": "Test scholarly metadata",
+    "isPreprint": false
+  },
+  {
+    "title": "Culex urban ecology placeholder sample record",
+    "abstract": "Demonstration metadata.",
+    "doi": "10.5555/weekly-placeholder",
+    "journal": "Sample Journal",
+    "authors": ["Sample Data"],
+    "publishedOnline": "2026-07-24",
+    "source": "Local sample data",
+    "isPreprint": false
+  },
+  {
+    "title": "Crop yield responses in wheat",
+    "abstract": "An unrelated agricultural study.",
+    "doi": "10.5555/weekly-unrelated",
+    "journal": "Crop Journal",
+    "authors": ["Test Author"],
+    "publishedOnline": "2026-07-24",
+    "source": "Test scholarly metadata",
+    "isPreprint": false
+  },
+  {
+    "title": "Thermal tolerance of Aedes mosquitoes",
+    "abstract": "An older mosquito study.",
+    "doi": "10.5555/weekly-old-record",
+    "journal": "Vector Biology",
+    "authors": ["Test Author"],
+    "publishedOnline": "2026-07-20",
+    "source": "Test scholarly metadata",
+    "isPreprint": false
+  }
+]
