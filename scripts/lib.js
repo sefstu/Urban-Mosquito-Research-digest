@@ -102,6 +102,19 @@ export function findLinkedPreprint(record, archive) {
   return archive.papers.find((paper) => paper.isPreprint && normalizeTitle(paper.title) === title) || null;
 }
 
+export function papersForWeeklyStatus(accepted, archive, runDate) {
+  const seen = new Set();
+  return [
+    ...accepted,
+    ...archive.papers.filter((paper) => paper.week === runDate)
+  ].filter((paper) => {
+    const key = paper.id || normalizeDoi(paper.doi) || normalizeTitle(paper.title);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function isWithinPrecedingDays(dateString, runDateString, lookbackDays) {
   if (!dateString) return false;
   const date = utcDay(dateString);

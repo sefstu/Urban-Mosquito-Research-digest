@@ -14,6 +14,7 @@ import {
   matchesExclusionRules,
   matchesSpeciesScope,
   normalizeDoi,
+  papersForWeeklyStatus,
   scoreRelevance,
   stableId
 } from "./lib.js";
@@ -76,14 +77,15 @@ await addOptionalAiSummaries(accepted);
 markReadFirst(accepted);
 
 const window = publicationWindow(runDate, config.lookbackDays);
+const weeklyPapers = papersForWeeklyStatus(accepted, paperArchive, runDate);
 const runStatus = {
   runDate,
   windowStart: window.start,
   windowEnd: window.end,
   completedAt: new Date().toISOString(),
-  acceptedCount: accepted.length,
+  acceptedCount: weeklyPapers.length,
   topics: config.topics.map((topic) => {
-    const count = accepted.filter((paper) => paper.topic === topic.name).length;
+    const count = weeklyPapers.filter((paper) => paper.topic === topic.name).length;
     return {
       name: topic.name,
       count,
