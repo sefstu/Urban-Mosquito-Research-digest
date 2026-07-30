@@ -27,7 +27,8 @@ C:\Users\youss\.cache\codex-runtimes\codex-primary-runtime\dependencies\node\bin
 - `scripts/update-now.js` runs the weekly API update.
 - `scripts/lib.js` contains DOI normalization, title normalization, date checks, European arbovirus filtering and relevance scoring.
 - `tests/lib.test.js` tests normalization, deduplication, strict date handling, European arbovirus geography and relevance scoring.
-- `.github/workflows/update-digest.yml` runs every Tuesday morning and can also be triggered manually.
+- `data/run-status.json` records every weekly check, including topics with no qualifying papers.
+- `.github/workflows/update-digest.yml` runs every Monday morning and can also be triggered manually.
 
 ## Manual Update
 
@@ -38,10 +39,11 @@ npm run update
 The script queries OpenAlex, Crossref and Europe PMC. It only accepts papers whose earliest verified online-publication date falls in the preceding seven days. API indexing dates and metadata update dates are not treated as new publication dates.
 
 When no topic has qualifying papers, the script prints `No new papers identified this week` for each topic and leaves the archive unchanged.
+The website also displays that result for each topic, so older papers are never presented as new.
 
 ## GitHub Pages Deployment
 
-1. Create a new GitHub repository.
+1. Create a new GitHub repository. Use a public repository for GitHub Pages on GitHub Free; private-repository Pages requires a paid plan.
 2. Copy this project into the repository root.
 3. Commit and push all files.
 4. In GitHub, open `Settings` -> `Pages`.
@@ -49,17 +51,24 @@ When no topic has qualifying papers, the script prints `No new papers identified
 6. Select the `main` branch and `/ (root)` folder.
 7. Save. GitHub will publish the site at the Pages URL shown in that settings panel.
 
+## Automatic Monday Update
+
+GitHub Actions runs the update at 08:15 Europe/Brussels every Monday. Scheduled Actions can occasionally start a little later when GitHub is busy.
+
+The computer that created the project does not need to be on. GitHub runs the search, commits valid changes, and GitHub Pages republishes the site.
+
 ## Optional OpenAI Summaries
 
-The site works without AI and uses only metadata and abstracts from scholarly APIs. If `OPENAI_API_KEY` is present, the update script uses the OpenAI Responses API with the economical `gpt-5.6-luna` default model to create concise cached summaries for newly accepted papers only.
+The site works without AI and creates concise abstract-based summaries using free scholarly metadata. AI summaries are optional and are not required for the Monday update.
 
 1. In GitHub, open the repository `Settings`.
 2. Go to `Secrets and variables` -> `Actions`.
 3. Choose `New repository secret`.
 4. Name it `OPENAI_API_KEY`.
 5. Paste the API key and save.
+6. Add an Actions variable named `OPENAI_MODEL` containing the model you have chosen.
 
-The workflow already passes `OPENAI_API_KEY` to the updater. To use a different model, add an Actions variable named `OPENAI_MODEL`.
+If either setting is absent, the free metadata-based summarizer is used.
 
 ## European Arbovirus Rules
 
@@ -70,8 +79,22 @@ The `European arbovirus dynamics` topic applies a strict geographic filter:
 - Report country or region, virus, mosquito vector species, host species when relevant, study period, evidence type, main change or finding, and relevance to European transmission risk.
 - Keep preprints separate and link later journal versions rather than counting them as entirely new studies.
 
+## Species Scope
+
+- `Culex`, `Aedes`, and `Anopheles` are the priority mosquito genera.
+- Other mosquito genera are included only when a paper transfers a method or concept relevant to the configured research context.
+- Non-mosquito organisms are included only for strong urban-evolution or common-garden methodological value.
+
+## Reliability Rules
+
+- No sample or placeholder records are stored.
+- Journal and preprint records require a DOI-shaped persistent identifier.
+- Metadata-update and API-indexing dates are not treated as publication dates.
+- The updater applies the preceding seven-day window before relevance ranking.
+- One API failure does not stop the run; if every source fails, the archive is left unchanged.
+- DOI and normalized-title history is permanent.
+
 ## Limitations
 
-- Sample records are included so the interface is immediately usable. They are clearly marked as sample data where appropriate.
 - Automated extraction of study period, host species and fine-grained arbovirus evidence depends on what APIs expose in title and abstract metadata; ambiguous fields are marked as not specified for manual review.
-- DOI link validation is handled structurally by normalized DOI links; a deeper HTTP validation pass can be added if you want the update script to check every DOI URL before commit.
+- A DOI is validated structurally and against scholarly API metadata. Publisher pages can still correct their own metadata after publication, so unusually ambiguous records should be reviewed manually.

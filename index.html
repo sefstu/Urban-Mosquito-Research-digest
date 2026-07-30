@@ -32,7 +32,15 @@
       <section class="stats" aria-label="Digest statistics">
         <div><strong id="stat-new">0</strong><span>New papers this week</span></div>
         <div><strong id="stat-total">0</strong><span>Total archived papers</span></div>
-        <div><strong id="stat-topics">0</strong><span>Topics represented</span></div>
+        <div><strong id="stat-topics">0</strong><span>Topics with new papers</span></div>
+      </section>
+
+      <section class="weekly-coverage" aria-labelledby="coverage-title">
+        <div class="section-heading">
+          <h2 id="coverage-title">This week by topic</h2>
+          <p id="coverage-window"></p>
+        </div>
+        <div class="weekly-status-grid" id="weekly-status"></div>
       </section>
 
       <section class="controls" aria-label="Filter papers">
@@ -63,6 +71,7 @@
           <label><input id="high-relevance" type="checkbox"> Highly relevant</label>
           <label><input id="read-first-only" type="checkbox"> Read first</label>
           <label><input id="open-access-only" type="checkbox"> Open access only</label>
+          <label><input id="include-archive" type="checkbox"> Include archive</label>
         </div>
       </section>
 
@@ -72,6 +81,14 @@
           <p id="result-count"></p>
         </div>
         <div id="digest"></div>
+      </section>
+
+      <section id="preprints-section" aria-labelledby="preprints-title" hidden>
+        <div class="section-heading">
+          <h2 id="preprints-title">Preprints</h2>
+          <p>Clearly separated from peer-reviewed journal articles.</p>
+        </div>
+        <div id="preprints"></div>
       </section>
 
       <section class="archive" aria-labelledby="archive-title">
@@ -96,7 +113,7 @@
 
       <section class="methodology" aria-labelledby="method-title">
         <h2 id="method-title">Methodology</h2>
-        <p>The weekly script searches OpenAlex, Crossref, Europe PMC, and preprint sources using editable topic queries. It accepts only records with an earliest verified online-publication date inside the preceding seven days, protects the existing archive on API failure, and deduplicates permanently by DOI first and normalized title second.</p>
+        <p>The Monday script searches OpenAlex, Crossref, Europe PMC, and preprint records using editable topic queries. It accepts only DOI-identified records with an earliest verified online-publication date inside the preceding seven days, rejects placeholders and configured exclusions, protects the existing archive when all sources fail, and deduplicates permanently by DOI first and normalized title second.</p>
         <p>Preprints are labelled separately. When a preprint later appears as a journal article, matching DOI, title, and preprint metadata are linked so the article is not counted as an entirely new study.</p>
       </section>
     </main>
