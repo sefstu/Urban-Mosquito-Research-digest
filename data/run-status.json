@@ -2,7 +2,7 @@
   "runDate": "2026-07-30",
   "windowStart": "2026-07-23",
   "windowEnd": "2026-07-29",
-  "completedAt": "2026-07-30T18:21:28.104Z",
+  "completedAt": "2026-07-30T18:25:37.182Z",
   "acceptedCount": 20,
   "topics": [
     {
@@ -49,8 +49,8 @@
     },
     "Crossref": {
       "requests": 25,
-      "failures": 13,
-      "records": 1152
+      "failures": 10,
+      "records": 1421
     },
     "Europe PMC": {
       "requests": 25,
