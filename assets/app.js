@@ -1,6 +1,7 @@
 const state = {
   papers: [],
   history: {},
+  status: {},
   filters: {
     search: "",
     topic: "",
@@ -9,6 +10,7 @@ const state = {
     high: false,
     readFirst: false,
     openAccess: false,
+    archive: false,
     sort: "relevance"
   }
 };
@@ -26,16 +28,19 @@ const fields = {
   high: document.querySelector("#high-relevance"),
   readFirst: document.querySelector("#read-first-only"),
   openAccess: document.querySelector("#open-access-only"),
+  archive: document.querySelector("#include-archive"),
   sort: document.querySelector("#sort")
 };
 
 const data = await Promise.all([
   fetch("data/papers.json").then((response) => response.json()),
-  fetch("data/history.json").then((response) => response.json())
+  fetch("data/history.json").then((response) => response.json()),
+  fetch("data/run-status.json").then((response) => response.json())
 ]);
 
 state.papers = data[0].papers;
 state.history = data[1];
+state.status = data[2];
 hydrateControls();
 render();
 
@@ -70,14 +75,16 @@ function unique(values) {
 
 function render() {
   const papers = filteredPapers();
-  const latest = latestDate(state.papers);
-  document.querySelector("#latest-update").textContent = `Latest update: ${formatDate(latest)}.`;
-  document.querySelector("#stat-new").textContent = state.papers.filter((paper) => paper.week === latest).length;
+  const latest = state.status.runDate || latestDate(state.papers);
+  document.querySelector("#latest-update").textContent = `Latest weekly check: ${formatDate(latest)}. Publication window: ${formatDateRange(state.status.windowStart, state.status.windowEnd)}.`;
+  document.querySelector("#stat-new").textContent = state.status.acceptedCount ?? state.papers.filter((paper) => paper.week === latest).length;
   document.querySelector("#stat-total").textContent = state.papers.length;
-  document.querySelector("#stat-topics").textContent = unique(state.papers.map((paper) => paper.topic)).length;
+  document.querySelector("#stat-topics").textContent = (state.status.topics || []).filter((topic) => topic.count > 0).length;
   document.querySelector("#result-count").textContent = `${papers.length} paper${papers.length === 1 ? "" : "s"} shown.`;
+  renderWeeklyStatus();
   renderReadFirst();
-  renderDigest(papers);
+  renderDigest(papers.filter((paper) => !paper.isPreprint));
+  renderPreprints(papers.filter((paper) => paper.isPreprint));
   renderArchive();
   renderReadingList();
 }
@@ -85,6 +92,7 @@ function render() {
 function filteredPapers() {
   const query = state.filters.search.trim().toLowerCase();
   return state.papers
+    .filter((paper) => state.filters.archive || paper.week === state.status.runDate)
     .filter((paper) => !query || haystack(paper).includes(query))
     .filter((paper) => !state.filters.topic || paper.topic === state.filters.topic)
     .filter((paper) => !state.filters.taxon || paper.taxon === state.filters.taxon)
@@ -117,12 +125,25 @@ function haystack(paper) {
 
 function renderReadFirst() {
   const container = document.querySelector("#read-first-list");
-  const latest = latestDate(state.papers);
+  const latest = state.status.runDate || latestDate(state.papers);
   const papers = state.papers
     .filter((paper) => paper.week === latest && paper.readFirst)
     .sort((a, b) => a.readFirstRank - b.readFirstRank)
     .slice(0, 3);
-  container.replaceChildren(...(papers.length ? papers.map(cardFor) : [empty("No read-first papers selected this week.")]));
+  container.replaceChildren(...(papers.length ? papers.map(cardFor) : [empty("No new papers identified this week.")]));
+}
+
+function renderWeeklyStatus() {
+  const container = document.querySelector("#weekly-status");
+  const topics = state.status.topics || [];
+  document.querySelector("#coverage-window").textContent = `Papers first published online ${formatDateRange(state.status.windowStart, state.status.windowEnd)}.`;
+  container.replaceChildren(...topics.map((topic) => {
+    const node = document.createElement("div");
+    node.className = "weekly-status-item";
+    node.dataset.hasPapers = topic.count > 0 ? "true" : "false";
+    node.innerHTML = `<strong>${escapeHtml(topic.name)}</strong><span>${escapeHtml(topic.message)}</span>`;
+    return node;
+  }));
 }
 
 function renderDigest(papers) {
@@ -147,6 +168,20 @@ function renderDigest(papers) {
   });
 
   container.replaceChildren(...groups);
+}
+
+function renderPreprints(papers) {
+  const section = document.querySelector("#preprints-section");
+  const container = document.querySelector("#preprints");
+  section.hidden = papers.length === 0;
+  if (!papers.length) {
+    container.replaceChildren();
+    return;
+  }
+  const grid = document.createElement("div");
+  grid.className = "paper-grid";
+  grid.append(...papers.map(cardFor));
+  container.replaceChildren(grid);
 }
 
 function renderArchive() {
@@ -275,7 +310,13 @@ function groupBy(items, selector) {
 }
 
 function formatDate(date) {
+  if (!date) return "date unavailable";
   return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(`${date}T00:00:00Z`));
+}
+
+function formatDateRange(start, end) {
+  if (!start || !end) return "date window unavailable";
+  return `${formatDate(start)}–${formatDate(end)}`;
 }
 
 function formatRelevanceScore(score) {
