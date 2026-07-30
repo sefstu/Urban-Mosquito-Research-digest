@@ -46,6 +46,46 @@ export function isDuplicate(record, history) {
   );
 }
 
+export function hasVerifiedScholarlyIdentity(record) {
+  const doi = normalizeDoi(record.doi);
+  const title = normalizeTitle(record.title);
+  const metadata = searchableText(record);
+  const looksLikeDoi = /^10\.\d{4,9}\/\S+$/i.test(doi);
+  const isPlaceholder = /\b(sample data|sample record|placeholder|demo record|local sample)\b/i.test(metadata);
+  return Boolean(title.length >= 12 && looksLikeDoi && !isPlaceholder);
+}
+
+export function matchesExclusionRules(record, exclusionTerms = []) {
+  const text = searchableText(record);
+  return !exclusionTerms.some((term) => text.includes(String(term).toLowerCase()));
+}
+
+export function matchesSpeciesScope(record, config) {
+  const text = searchableText(record);
+  const scope = config.speciesScope || {};
+  const priorityGenera = scope.priorityGenera || ["culex", "aedes", "anopheles"];
+  if (priorityGenera.some((genus) => text.includes(String(genus).toLowerCase()))) return true;
+
+  const isMosquitoPaper = /\b(mosquito|mosquitoes|culicidae)\b/i.test(text);
+  const methodTerms = (scope.transferableMethodTerms || []).map((term) => String(term).toLowerCase());
+  if (isMosquitoPaper && scope.allowOtherMosquitoesForTransferableMethods !== false) {
+    return methodTerms.some((term) => text.includes(term));
+  }
+
+  if (scope.allowNonMosquitoUrbanModels !== false) {
+    const conceptualTerms = (scope.nonMosquitoConceptualTerms || [
+      "urban adaptation",
+      "urban evolution",
+      "urban rural",
+      "common garden",
+      "reciprocal transplant"
+    ]).map((term) => String(term).toLowerCase());
+    return conceptualTerms.some((term) => text.includes(term));
+  }
+
+  return false;
+}
+
 export function addToHistory(record, history) {
   const doi = normalizeDoi(record.doi);
   const title = normalizeTitle(record.title);
@@ -72,10 +112,8 @@ export function earliestOnlineDate(record) {
   const candidates = [
     record.onlinePublicationDate,
     record.publishedOnline,
-    record.published_print,
     record.publicationDate,
-    record.from_online_date,
-    record.createdDate
+    record.from_online_date
   ].filter(Boolean).sort();
   return candidates[0] || "";
 }
@@ -105,15 +143,17 @@ export function classifyTopic(record, config) {
   const text = searchableText(record);
   let best = config.topics[0];
   let bestScore = -1;
+  let bestHits = 0;
   for (const topic of config.topics) {
     const hits = topic.includeTerms.filter((term) => text.includes(term.toLowerCase())).length;
     const score = hits * topic.weight;
     if (score > bestScore) {
       best = topic;
       bestScore = score;
+      bestHits = hits;
     }
   }
-  return best.name;
+  return bestHits > 0 ? best.name : "";
 }
 
 export function buildSummary(record) {
@@ -127,6 +167,7 @@ export function searchableText(record) {
     record.title,
     record.abstract,
     record.journal,
+    record.source,
     record.topic,
     record.taxon,
     record.countryOrRegion,

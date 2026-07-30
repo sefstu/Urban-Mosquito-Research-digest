@@ -6,10 +6,13 @@ import {
   buildSummary,
   classifyTopic,
   earliestOnlineDate,
+  hasVerifiedScholarlyIdentity,
   isDuplicate,
   isEuropeanArbovirusRecord,
   isWithinPrecedingDays,
   findLinkedPreprint,
+  matchesExclusionRules,
+  matchesSpeciesScope,
   normalizeDoi,
   scoreRelevance,
   stableId
@@ -19,6 +22,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataPath = path.join(root, "data", "papers.json");
 const historyPath = path.join(root, "data", "history.json");
 const configPath = path.join(root, "data", "search-config.json");
+const runStatusPath = path.join(root, "data", "run-status.json");
 const runDate = process.env.RUN_DATE || new Date().toISOString().slice(0, 10);
 
 const [paperArchive, history, config] = await Promise.all([
@@ -27,16 +31,24 @@ const [paperArchive, history, config] = await Promise.all([
   readJson(configPath)
 ]);
 
-const fetched = process.env.MOCK_RECORDS
-  ? await readJson(path.resolve(process.env.MOCK_RECORDS))
-  : await fetchAll(config);
+const retrieval = process.env.MOCK_RECORDS
+  ? {
+      records: await readJson(path.resolve(process.env.MOCK_RECORDS)),
+      sourceStatus: { Mock: { requests: 1, failures: 0, records: 0 } }
+    }
+  : await fetchAll(config, runDate);
 const accepted = [];
 
-for (const raw of fetched) {
+for (const raw of retrieval.records) {
+  if (!hasVerifiedScholarlyIdentity(raw)) continue;
+  if (!matchesExclusionRules(raw, config.exclusionTerms)) continue;
+  if (!matchesSpeciesScope(raw, config)) continue;
+
   const onlineDate = earliestOnlineDate(raw);
   if (!isWithinPrecedingDays(onlineDate, runDate, config.lookbackDays)) continue;
 
   const topic = classifyTopic(raw, config);
+  if (!topic) continue;
   if (topic === "European arbovirus dynamics" && !isEuropeanArbovirusRecord(raw)) continue;
 
   const record = normalizeRecord(raw, topic, onlineDate, config);
@@ -60,15 +72,28 @@ for (const raw of fetched) {
   addToHistory(record, history);
 }
 
-if (!accepted.length) {
-  const topicNames = config.topics.map((topic) => topic.name);
-  console.log("No qualifying new papers found for this weekly run.");
-  topicNames.forEach((topic) => console.log(`${topic}: No new papers identified this week`));
-  process.exit(0);
-}
-
 await addOptionalAiSummaries(accepted);
 markReadFirst(accepted);
+
+const window = publicationWindow(runDate, config.lookbackDays);
+const runStatus = {
+  runDate,
+  windowStart: window.start,
+  windowEnd: window.end,
+  completedAt: new Date().toISOString(),
+  acceptedCount: accepted.length,
+  topics: config.topics.map((topic) => {
+    const count = accepted.filter((paper) => paper.topic === topic.name).length;
+    return {
+      name: topic.name,
+      count,
+      message: count
+        ? `${count} new paper${count === 1 ? "" : "s"} identified this week`
+        : "No new papers identified this week"
+    };
+  }),
+  sources: retrieval.sourceStatus
+};
 
 const nextArchive = {
   generatedAt: new Date().toISOString(),
@@ -80,24 +105,57 @@ if (process.env.DRY_RUN === "1") {
   process.exit(0);
 }
 
-await fs.writeFile(dataPath, `${JSON.stringify(nextArchive, null, 2)}\n`);
-await fs.writeFile(historyPath, `${JSON.stringify(history, null, 2)}\n`);
-console.log(`Added ${accepted.length} new paper${accepted.length === 1 ? "" : "s"}.`);
+await fs.writeFile(runStatusPath, `${JSON.stringify(runStatus, null, 2)}\n`);
+if (accepted.length) {
+  await fs.writeFile(dataPath, `${JSON.stringify(nextArchive, null, 2)}\n`);
+  await fs.writeFile(historyPath, `${JSON.stringify(history, null, 2)}\n`);
+  console.log(`Added ${accepted.length} new paper${accepted.length === 1 ? "" : "s"}.`);
+} else {
+  console.log("No qualifying new papers found for this weekly run.");
+  runStatus.topics.forEach((topic) => console.log(`${topic.name}: ${topic.message}`));
+}
 
-async function fetchAll(config) {
+async function fetchAll(config, date) {
   const records = [];
+  const sourceStatus = {
+    OpenAlex: { requests: 0, failures: 0, records: 0 },
+    Crossref: { requests: 0, failures: 0, records: 0 },
+    "Europe PMC": { requests: 0, failures: 0, records: 0 }
+  };
+  let successfulRequests = 0;
+  const window = publicationWindow(date, config.lookbackDays);
   for (const topic of config.topics) {
     for (const query of topic.queries) {
-      records.push(...await fetchOpenAlex(query));
-      records.push(...await fetchCrossref(query));
-      records.push(...await fetchEuropePmc(query));
+      const sources = [
+        ["OpenAlex", fetchOpenAlex],
+        ["Crossref", fetchCrossref],
+        ["Europe PMC", fetchEuropePmc]
+      ];
+      const results = await Promise.allSettled(
+        sources.map(([, fetcher]) => fetcher(query, window))
+      );
+      results.forEach((result, index) => {
+        const name = sources[index][0];
+        sourceStatus[name].requests += 1;
+        if (result.status === "fulfilled") {
+          successfulRequests += 1;
+          sourceStatus[name].records += result.value.length;
+          records.push(...result.value);
+        } else {
+          sourceStatus[name].failures += 1;
+          console.warn(`${name} query failed: ${result.reason?.message || "unknown error"}`);
+        }
+      });
     }
   }
-  return records;
+  if (!successfulRequests) {
+    throw new Error("All scholarly data sources failed; the existing digest was left unchanged.");
+  }
+  return { records, sourceStatus };
 }
 
 async function addOptionalAiSummaries(records) {
-  if (!process.env.OPENAI_API_KEY) return;
+  if (!process.env.OPENAI_API_KEY || !process.env.OPENAI_MODEL) return;
   for (const record of records) {
     if (record.aiSummary?.text) continue;
     const prompt = [
@@ -105,7 +163,7 @@ async function addOptionalAiSummaries(records) {
       "Use only the title, abstract and metadata provided. Do not infer absent results.",
       "Distinguish evolutionary evidence from observational or phenotypic association.",
       "Distinguish laboratory findings from demonstrated field effectiveness.",
-      "Return three short sentences: summary, main finding, and why it matters.",
+      "Return exactly three labelled lines: SUMMARY:, MAIN FINDING:, and WHY IT MATTERS:.",
       "",
       `Title: ${record.title}`,
       `Abstract or metadata summary: ${record.summary}`,
@@ -121,7 +179,7 @@ async function addOptionalAiSummaries(records) {
           "authorization": `Bearer ${process.env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
-          model: process.env.OPENAI_MODEL || "gpt-5.6-luna",
+          model: process.env.OPENAI_MODEL,
           input: prompt,
           text: { verbosity: "low" },
           max_output_tokens: 260
@@ -131,9 +189,12 @@ async function addOptionalAiSummaries(records) {
       const json = await response.json();
       const text = json.output_text || json.output?.flatMap((item) => item.content || []).map((item) => item.text).filter(Boolean).join("\n");
       if (text) {
-        record.summary = text.trim();
+        const parsed = parseAiSummary(text);
+        if (parsed.summary) record.summary = parsed.summary;
+        if (parsed.mainFinding) record.mainFinding = parsed.mainFinding;
+        if (parsed.whyItMatters) record.whyItMatters = parsed.whyItMatters;
         record.aiSummary = {
-          model: process.env.OPENAI_MODEL || "gpt-5.6-luna",
+          model: process.env.OPENAI_MODEL,
           createdAt: new Date().toISOString(),
           text: text.trim()
         };
@@ -168,10 +229,11 @@ function explainReadFirst(record) {
   return reasons.length ? `Ranked highly because it ${reasons.slice(0, 3).join(", ")}.` : "Ranked by overall relevance score across the configured research priorities.";
 }
 
-async function fetchOpenAlex(query) {
+async function fetchOpenAlex(query, window) {
   const url = new URL("https://api.openalex.org/works");
   url.searchParams.set("search", query);
-  url.searchParams.set("per-page", "25");
+  url.searchParams.set("filter", `from_publication_date:${window.start},to_publication_date:${window.end}`);
+  url.searchParams.set("per-page", "100");
   url.searchParams.set("mailto", process.env.OPENALEX_MAILTO || "example@example.com");
   const json = await fetchJson(url);
   return (json.results || []).map((item) => ({
@@ -188,10 +250,11 @@ async function fetchOpenAlex(query) {
   }));
 }
 
-async function fetchCrossref(query) {
+async function fetchCrossref(query, window) {
   const url = new URL("https://api.crossref.org/works");
   url.searchParams.set("query.bibliographic", query);
-  url.searchParams.set("rows", "25");
+  url.searchParams.set("filter", `from-pub-date:${window.start},until-pub-date:${window.end}`);
+  url.searchParams.set("rows", "100");
   const json = await fetchJson(url);
   return (json.message?.items || []).map((item) => ({
     title: item.title?.[0],
@@ -200,19 +263,17 @@ async function fetchCrossref(query) {
     journal: item["container-title"]?.[0],
     authors: item.author?.map((author) => [author.given, author.family].filter(Boolean).join(" ")).filter(Boolean),
     publishedOnline: dateParts(item["published-online"]),
-    publicationDate: dateParts(item.published),
-    createdDate: dateParts(item.created),
     openAccess: null,
     source: "Crossref",
     isPreprint: /posted-content|preprint/i.test(item.type || "")
   }));
 }
 
-async function fetchEuropePmc(query) {
+async function fetchEuropePmc(query, window) {
   const url = new URL("https://www.ebi.ac.uk/europepmc/webservices/rest/search");
-  url.searchParams.set("query", query);
+  url.searchParams.set("query", `FIRST_PDATE:[${window.start} TO ${window.end}] AND (${query})`);
   url.searchParams.set("format", "json");
-  url.searchParams.set("pageSize", "25");
+  url.searchParams.set("pageSize", "100");
   const json = await fetchJson(url);
   return (json.resultList?.result || []).map((item) => ({
     title: item.title,
@@ -242,7 +303,7 @@ function normalizeRecord(raw, topic, onlineDate, config) {
     studyType: inferStudyType(raw),
     evidenceLabel: inferEvidence(raw),
     summary: buildSummary(raw),
-    mainFinding: raw.abstract ? "See abstract-derived summary; main finding requires manual review if absent from the abstract." : "Not stated in available metadata.",
+    mainFinding: extractMainFinding(raw.abstract),
     whyItMatters: explainRelevance(raw, topic),
     openAccess: raw.openAccess,
     source: raw.source,
@@ -266,7 +327,13 @@ function normalizeRecord(raw, topic, onlineDate, config) {
 function inferTaxon(raw) {
   const text = `${raw.title || ""} ${raw.abstract || ""}`.toLowerCase();
   if (text.includes("culex pipiens")) return "Culex pipiens";
-  if (text.includes("mosquito")) return "Mosquitoes";
+  const genera = [
+    ["culex", "Culex"],
+    ["aedes", "Aedes"],
+    ["anopheles", "Anopheles"]
+  ].filter(([term]) => text.includes(term)).map(([, label]) => label);
+  if (genera.length) return `${genera.join(", ")} mosquitoes`;
+  if (text.includes("mosquito") || text.includes("culicidae")) return "Other mosquitoes";
   if (text.includes("vector")) return "Disease vectors";
   return "Other urban-adapted organisms";
 }
@@ -326,7 +393,7 @@ function inferCountry(raw) {
 function explainRelevance(raw, topic) {
   if (topic === "European arbovirus dynamics") return "Matches the European WNV/SINV surveillance, vector competence, host interaction or outbreak-risk watch.";
   if (topic.includes("Thermal")) return "Relevant to CTmax, CTmin, temperature-dependent life-history responses or thermal adaptation.";
-  if (topic.includes("Predator")) return "Relevant to context-dependent predator efficiency and mosquito control in aquatic habitats.";
+  if (topic.includes("control")) return "Relevant to context-dependent predator or microbial control efficiency in aquatic mosquito habitats.";
   if (topic.includes("eDNA")) return "Relevant to eDNA surveillance of native or invasive mosquitoes and disease vectors.";
   if (topic.includes("Urban")) return "Relevant to separating genetic, plastic and environmental components of urban-rural trait differences.";
   return "Conceptual or methodological relevance to mosquito eco-evolution and vector ecology.";
@@ -352,6 +419,21 @@ function stripTags(text) {
   return text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
+function extractMainFinding(abstract = "") {
+  if (!abstract) return "Not stated in available metadata.";
+  const sentences = abstract.replace(/\s+/g, " ").match(/[^.!?]+[.!?]+/g) || [abstract];
+  return sentences.at(-1).trim();
+}
+
+function parseAiSummary(text) {
+  const value = text.trim();
+  return {
+    summary: value.match(/SUMMARY:\s*(.+)/i)?.[1]?.trim() || "",
+    mainFinding: value.match(/MAIN FINDING:\s*(.+)/i)?.[1]?.trim() || "",
+    whyItMatters: value.match(/WHY IT MATTERS:\s*(.+)/i)?.[1]?.trim() || ""
+  };
+}
+
 async function fetchJson(url) {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`API failed: ${url.hostname} ${response.status}`);
@@ -360,4 +442,15 @@ async function fetchJson(url) {
 
 async function readJson(file) {
   return JSON.parse(await fs.readFile(file, "utf8"));
+}
+
+function publicationWindow(date, lookbackDays) {
+  const end = new Date(`${date}T00:00:00Z`);
+  end.setUTCDate(end.getUTCDate() - 1);
+  const start = new Date(`${date}T00:00:00Z`);
+  start.setUTCDate(start.getUTCDate() - lookbackDays);
+  return {
+    start: start.toISOString().slice(0, 10),
+    end: end.toISOString().slice(0, 10)
+  };
 }
