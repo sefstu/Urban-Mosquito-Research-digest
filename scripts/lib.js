@@ -64,7 +64,10 @@ export function matchesSpeciesScope(record, config) {
   const text = searchableText(record);
   const scope = config.speciesScope || {};
   const priorityGenera = scope.priorityGenera || ["culex", "aedes", "anopheles"];
-  if (priorityGenera.some((genus) => text.includes(String(genus).toLowerCase()))) return true;
+  if (priorityGenera.some((genus) => {
+    const escaped = String(genus).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`\\b${escaped}\\b`, "i").test(text);
+  })) return true;
 
   const isMosquitoPaper = /\b(mosquito|mosquitoes|culicidae)\b/i.test(text);
   const methodTerms = (scope.transferableMethodTerms || []).map((term) => String(term).toLowerCase());
