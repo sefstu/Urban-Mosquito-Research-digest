@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Urban Mosquito Research Digest</title>
+    <meta name="description" content="A weekly research digest for urban Culex pipiens adaptation, vector ecology, and European arbovirus dynamics.">
+    <link rel="stylesheet" href="assets/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-copy">
+        <p class="eyebrow">Weekly literature watch</p>
+        <h1>Urban Mosquito Research Digest</h1>
+        <p class="lede">New papers on urban adaptation in <i>Culex pipiens</i>, mosquito ecology, thermal biology, biocontrol, eDNA surveillance, and European WNV/SINV dynamics.</p>
+        <p class="updated" id="latest-update">Latest update loading...</p>
+      </div>
+      <div class="header-art">
+        <img src="assets/urban-water-landscape.png" alt="Urban pond, vegetation, and surrounding Brussels streetscape reflected in the water.">
+      </div>
+    </header>
+
+    <main>
+      <section class="read-first" aria-labelledby="read-first-title">
+        <div class="section-heading">
+          <h2 id="read-first-title">Most relevant this week</h2>
+          <p>Prioritized for your Belgian urban-rural <i>Culex pipiens</i> research context.</p>
+        </div>
+        <div class="paper-grid prominent" id="read-first-list"></div>
+      </section>
+
+      <section class="stats" aria-label="Digest statistics">
+        <div><strong id="stat-new">0</strong><span>New papers this week</span></div>
+        <div><strong id="stat-total">0</strong><span>Total archived papers</span></div>
+        <div><strong id="stat-topics">0</strong><span>Topics represented</span></div>
+      </section>
+
+      <section class="controls" aria-label="Filter papers">
+        <label>
+          Search
+          <input id="search" type="search" placeholder="mosquito, CTmax, WNV, eDNA...">
+        </label>
+        <label>
+          Topic
+          <select id="topic-filter"><option value="">All topics</option></select>
+        </label>
+        <label>
+          Species
+          <select id="taxon-filter"><option value="">All species</option></select>
+        </label>
+        <label>
+          Publication date
+          <input id="date-filter" type="date">
+        </label>
+        <label>
+          Sort by
+          <select id="sort">
+            <option value="relevance">Relevance</option>
+            <option value="date">Publication date</option>
+          </select>
+        </label>
+        <div class="toggle-row" role="group" aria-label="Quick filters">
+          <label><input id="high-relevance" type="checkbox"> Highly relevant</label>
+          <label><input id="read-first-only" type="checkbox"> Read first</label>
+          <label><input id="open-access-only" type="checkbox"> Open access only</label>
+        </div>
+      </section>
+
+      <section aria-labelledby="digest-title">
+        <div class="section-heading">
+          <h2 id="digest-title">Weekly paper digest</h2>
+          <p id="result-count"></p>
+        </div>
+        <div id="digest"></div>
+      </section>
+
+      <section class="archive" aria-labelledby="archive-title">
+        <div class="section-heading">
+          <h2 id="archive-title">Archive</h2>
+          <p>Previous weekly runs remain searchable and deduplicated by DOI and normalized title.</p>
+        </div>
+        <div id="archive-list"></div>
+      </section>
+
+      <section class="reading-list" aria-labelledby="reading-list-title">
+        <div class="section-heading">
+          <h2 id="reading-list-title">Local reading list</h2>
+          <p>Saved in this browser only.</p>
+        </div>
+        <div class="export-actions">
+          <button id="export-csv" type="button">Export CSV</button>
+          <button id="export-bibtex" type="button">Export BibTeX</button>
+        </div>
+        <div id="reading-list"></div>
+      </section>
+
+      <section class="methodology" aria-labelledby="method-title">
+        <h2 id="method-title">Methodology</h2>
+        <p>The weekly script searches OpenAlex, Crossref, Europe PMC, and preprint sources using editable topic queries. It accepts only records with an earliest verified online-publication date inside the preceding seven days, protects the existing archive on API failure, and deduplicates permanently by DOI first and normalized title second.</p>
+        <p>Preprints are labelled separately. When a preprint later appears as a journal article, matching DOI, title, and preprint metadata are linked so the article is not counted as an entirely new study.</p>
+      </section>
+    </main>
+
+    <template id="paper-card-template">
+      <article class="paper-card">
+        <div class="card-top">
+          <div class="card-labels">
+            <span class="topic-pill"></span>
+            <span class="status-pill"></span>
+          </div>
+          <div class="relevance-score" aria-label="Relevance score"><strong></strong><span>relevance</span></div>
+        </div>
+        <h3></h3>
+        <p class="meta"></p>
+        <p class="summary"></p>
+        <dl class="paper-facts"></dl>
+        <p class="finding"></p>
+        <p class="matters"></p>
+        <p class="read-first-note"></p>
+        <div class="card-actions">
+          <a class="doi-link" target="_blank" rel="noreferrer">Open DOI</a>
+          <button class="copy-citation" type="button">Copy citation</button>
+          <button class="mark-read" type="button">Mark read</button>
+          <button class="save-paper" type="button">Save</button>
+        </div>
+      </article>
+    </template>
+
+    <script src="assets/app.js" type="module"></script>
+  </body>
+</html>

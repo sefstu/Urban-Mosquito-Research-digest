@@ -1,0 +1,11 @@
+{
+  "name": "urban-mosquito-research-digest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "update": "node scripts/update-now.js",
+    "preview": "node scripts/serve.js"
+  }
+}

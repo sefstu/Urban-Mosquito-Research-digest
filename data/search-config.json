@@ -1,0 +1,108 @@
+{
+  "lookbackDays": 7,
+  "strictPublicationRule": {
+    "useEarliestVerifiedOnlineDate": true,
+    "ignoreApiIndexDate": true,
+    "neverReaddMetadataChanges": true,
+    "dedupeOrder": ["doi", "normalizedTitle"],
+    "preprintsSeparate": true,
+    "linkPreprintToPublication": true
+  },
+  "researchContext": {
+    "description": "Eco-evolutionary responses of Culex pipiens mosquitoes along urban-rural gradients in Belgium using common-garden experiments, thermal-tolerance assays, life-history traits, population-genetic structure, eDNA surveillance and mesocosm experiments on predator-based mosquito control.",
+    "rankingPrinciple": "Use these interests to score and explain relevance, but keep retrieval broad enough to include important methodological or conceptual papers on other mosquito species, disease vectors and urban-adapted organisms."
+  },
+  "topics": [
+    {
+      "name": "Urban evolution and eco-evolution",
+      "queries": ["urban adaptation mosquito", "urban evolution mosquito", "urban rural common garden", "urban eco-evolution vector"],
+      "includeTerms": ["urban", "rural", "adaptation", "evolution", "common garden", "reciprocal transplant"],
+      "weight": 14
+    },
+    {
+      "name": "Thermal adaptation and tolerance",
+      "queries": ["mosquito CTmax CTmin", "Culex pipiens thermal tolerance", "temperature dependent life history mosquito"],
+      "includeTerms": ["CTmax", "CTmin", "thermal tolerance", "temperature", "development time", "survival", "body size"],
+      "weight": 13
+    },
+    {
+      "name": "Mosquito ecology and vector biology",
+      "queries": ["Culex pipiens ecology", "mosquito vector ecology", "mosquito life history urban"],
+      "includeTerms": ["Culex pipiens", "vector ecology", "life history", "gene flow", "population structure"],
+      "weight": 12
+    },
+    {
+      "name": "Oviposition and habitat choice",
+      "queries": ["mosquito oviposition cues", "Culex oviposition habitat choice", "urban mosquito breeding site management"],
+      "includeTerms": ["oviposition", "habitat choice", "breeding site", "oviposition cues", "management"],
+      "weight": 10
+    },
+    {
+      "name": "Predator-based biological control",
+      "queries": ["mosquito predators biological control", "predator mosquito mesocosm", "context dependent predator efficiency mosquito"],
+      "includeTerms": ["predator", "biological control", "mesocosm", "larval mosquito", "context dependent"],
+      "weight": 11
+    },
+    {
+      "name": "eDNA surveillance",
+      "queries": ["mosquito eDNA surveillance", "environmental DNA invasive mosquito", "eDNA disease vectors aquatic habitat"],
+      "includeTerms": ["eDNA", "environmental DNA", "surveillance", "invasive mosquito", "disease vector"],
+      "weight": 10
+    },
+    {
+      "name": "European arbovirus dynamics",
+      "strictGeography": "Europe only, including Europe-wide studies and individual European countries. Include non-European studies only when they directly analyse consequences for European transmission or emergence.",
+      "queries": [
+        "West Nile virus Europe Culex pipiens dynamics",
+        "Sindbis virus Europe mosquito avian host",
+        "European WNV outbreak risk Culex pipiens",
+        "Europe arbovirus vector competence Culex pipiens",
+        "West Nile virus Europe avian reservoir host modelling"
+      ],
+      "includeTerms": [
+        "West Nile virus",
+        "WNV",
+        "Sindbis virus",
+        "SINV",
+        "Europe",
+        "European",
+        "Culex pipiens",
+        "avian",
+        "vector competence",
+        "surveillance",
+        "outbreak",
+        "emergence",
+        "range expansion",
+        "predictive modelling"
+      ],
+      "requiredReportFields": [
+        "countryOrRegion",
+        "virus",
+        "vectorSpecies",
+        "hostSpecies",
+        "studyPeriod",
+        "arbovirusEvidenceType",
+        "mainFinding",
+        "europeanTransmissionRisk"
+      ],
+      "weight": 15
+    }
+  ],
+  "relevanceWeights": {
+    "Culex pipiens": 20,
+    "Belgium or nearby western Europe": 8,
+    "urban-rural gradient": 18,
+    "common garden or reciprocal transplant": 16,
+    "CTmax CTmin thermal tolerance": 15,
+    "temperature dependent life history": 12,
+    "population genetic structure or gene flow": 12,
+    "oviposition": 10,
+    "predator biological control mesocosm": 13,
+    "eDNA surveillance": 12,
+    "European WNV or SINV": 16,
+    "vector competence": 12,
+    "avian reservoir host interaction": 8,
+    "methodological transfer value": 7
+  },
+  "exclusionTerms": ["patent", "conference abstract only", "book review", "editorial without data"]
+}

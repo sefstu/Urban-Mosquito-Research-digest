@@ -1,0 +1,314 @@
+const state = {
+  papers: [],
+  history: {},
+  filters: {
+    search: "",
+    topic: "",
+    taxon: "",
+    date: "",
+    high: false,
+    readFirst: false,
+    openAccess: false,
+    sort: "relevance"
+  }
+};
+
+const storage = {
+  read: new Set(JSON.parse(localStorage.getItem("umrd-read") || "[]")),
+  saved: new Set(JSON.parse(localStorage.getItem("umrd-saved") || "[]"))
+};
+
+const fields = {
+  search: document.querySelector("#search"),
+  topic: document.querySelector("#topic-filter"),
+  taxon: document.querySelector("#taxon-filter"),
+  date: document.querySelector("#date-filter"),
+  high: document.querySelector("#high-relevance"),
+  readFirst: document.querySelector("#read-first-only"),
+  openAccess: document.querySelector("#open-access-only"),
+  sort: document.querySelector("#sort")
+};
+
+const data = await Promise.all([
+  fetch("data/papers.json").then((response) => response.json()),
+  fetch("data/history.json").then((response) => response.json())
+]);
+
+state.papers = data[0].papers;
+state.history = data[1];
+hydrateControls();
+render();
+
+Object.entries(fields).forEach(([name, node]) => {
+  node.addEventListener("input", () => {
+    if (node.type === "checkbox") state.filters[name] = node.checked;
+    else state.filters[name] = node.value;
+    render();
+  });
+});
+
+document.querySelector("#export-csv").addEventListener("click", exportCsv);
+document.querySelector("#export-bibtex").addEventListener("click", exportBibtex);
+
+function hydrateControls() {
+  fillSelect(fields.topic, unique(state.papers.map((paper) => paper.topic)));
+  fillSelect(fields.taxon, unique(state.papers.map((paper) => paper.taxon)));
+}
+
+function fillSelect(select, options) {
+  options.forEach((option) => {
+    const node = document.createElement("option");
+    node.value = option;
+    node.textContent = option;
+    select.append(node);
+  });
+}
+
+function unique(values) {
+  return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b));
+}
+
+function render() {
+  const papers = filteredPapers();
+  const latest = latestDate(state.papers);
+  document.querySelector("#latest-update").textContent = `Latest update: ${formatDate(latest)}.`;
+  document.querySelector("#stat-new").textContent = state.papers.filter((paper) => paper.week === latest).length;
+  document.querySelector("#stat-total").textContent = state.papers.length;
+  document.querySelector("#stat-topics").textContent = unique(state.papers.map((paper) => paper.topic)).length;
+  document.querySelector("#result-count").textContent = `${papers.length} paper${papers.length === 1 ? "" : "s"} shown.`;
+  renderReadFirst();
+  renderDigest(papers);
+  renderArchive();
+  renderReadingList();
+}
+
+function filteredPapers() {
+  const query = state.filters.search.trim().toLowerCase();
+  return state.papers
+    .filter((paper) => !query || haystack(paper).includes(query))
+    .filter((paper) => !state.filters.topic || paper.topic === state.filters.topic)
+    .filter((paper) => !state.filters.taxon || paper.taxon === state.filters.taxon)
+    .filter((paper) => !state.filters.date || paper.onlinePublicationDate >= state.filters.date)
+    .filter((paper) => !state.filters.high || paper.relevanceScore >= 70)
+    .filter((paper) => !state.filters.readFirst || paper.readFirst)
+    .filter((paper) => !state.filters.openAccess || paper.openAccess === true)
+    .sort((a, b) => {
+      if (state.filters.sort === "date") return b.onlinePublicationDate.localeCompare(a.onlinePublicationDate);
+      return b.relevanceScore - a.relevanceScore || b.onlinePublicationDate.localeCompare(a.onlinePublicationDate);
+    });
+}
+
+function haystack(paper) {
+  return [
+    paper.title,
+    paper.authors?.join(" "),
+    paper.journal,
+    paper.topic,
+    paper.taxon,
+    paper.summary,
+    paper.mainFinding,
+    paper.whyItMatters,
+    paper.virus,
+    paper.countryOrRegion,
+    paper.vectorSpecies,
+    paper.hostSpecies
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function renderReadFirst() {
+  const container = document.querySelector("#read-first-list");
+  const latest = latestDate(state.papers);
+  const papers = state.papers
+    .filter((paper) => paper.week === latest && paper.readFirst)
+    .sort((a, b) => a.readFirstRank - b.readFirstRank)
+    .slice(0, 3);
+  container.replaceChildren(...(papers.length ? papers.map(cardFor) : [empty("No read-first papers selected this week.")]));
+}
+
+function renderDigest(papers) {
+  const container = document.querySelector("#digest");
+  if (!papers.length) {
+    container.replaceChildren(empty("No papers match the current filters."));
+    return;
+  }
+
+  const byTopic = groupBy(papers, (paper) => paper.topic);
+  const groups = [...byTopic.entries()].map(([topic, topicPapers]) => {
+    const details = document.createElement("details");
+    details.className = "topic-group";
+    details.open = true;
+    const summary = document.createElement("summary");
+    summary.textContent = `${topic} (${topicPapers.length})`;
+    const grid = document.createElement("div");
+    grid.className = "paper-grid";
+    grid.append(...topicPapers.map(cardFor));
+    details.append(summary, grid);
+    return details;
+  });
+
+  container.replaceChildren(...groups);
+}
+
+function renderArchive() {
+  const container = document.querySelector("#archive-list");
+  const byWeek = groupBy(state.papers, (paper) => paper.week);
+  const weeks = [...byWeek.entries()].sort((a, b) => b[0].localeCompare(a[0]));
+  container.replaceChildren(...weeks.map(([week, papers]) => {
+    const node = document.createElement("div");
+    node.className = "archive-week";
+    node.innerHTML = `<strong>${escapeHtml(formatDate(week))}</strong><span>${papers.length} paper${papers.length === 1 ? "" : "s"} archived across ${unique(papers.map((paper) => paper.topic)).length} topic${unique(papers.map((paper) => paper.topic)).length === 1 ? "" : "s"}.</span>`;
+    return node;
+  }));
+}
+
+function renderReadingList() {
+  const saved = state.papers.filter((paper) => storage.saved.has(paper.id));
+  const container = document.querySelector("#reading-list");
+  container.replaceChildren(...(saved.length ? saved.map(cardFor) : [empty("No saved papers yet.")]));
+}
+
+function cardFor(paper) {
+  const template = document.querySelector("#paper-card-template");
+  const node = template.content.firstElementChild.cloneNode(true);
+  node.querySelector(".topic-pill").textContent = paper.topic;
+  const status = node.querySelector(".status-pill");
+  status.textContent = paper.isPreprint ? "Preprint" : paper.openAccess ? "Open access" : "Access unknown";
+  if (paper.isPreprint) status.classList.add("preprint");
+  const score = formatRelevanceScore(paper.relevanceScore);
+  node.dataset.relevance = score >= 8 ? "high" : score >= 6 ? "medium" : "general";
+  node.querySelector(".relevance-score strong").textContent = `${score}/10`;
+  node.querySelector("h3").innerHTML = italicizeSpecies(escapeHtml(paper.title));
+  node.querySelector(".meta").textContent = `${paper.authors?.join(", ") || "Authors unavailable"} · ${formatDate(paper.onlinePublicationDate)}`;
+  node.querySelector(".summary").textContent = paper.summary || "Abstract unavailable";
+
+  const journal = [paper.journal || "Journal unavailable", paper.source].filter(Boolean).join(" · ");
+  const facts = [
+    ["Species", paper.taxon || "Not specified"],
+    ["Journal", journal],
+    ["Methodology", methodologyFor(paper)]
+  ];
+
+  node.querySelector(".paper-facts").replaceChildren(...facts.flatMap(([term, value]) => {
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+    dt.textContent = term;
+    dd.innerHTML = italicizeSpecies(escapeHtml(String(value)));
+    return [dt, dd];
+  }));
+
+  node.querySelector(".finding").innerHTML = `<strong>Main finding:</strong> ${italicizeSpecies(escapeHtml(paper.mainFinding || "Not stated in available metadata."))}`;
+  node.querySelector(".matters").innerHTML = `<strong>Why it matters:</strong> ${italicizeSpecies(escapeHtml(paper.whyItMatters || "Relevance not yet assessed."))}`;
+  node.querySelector(".read-first-note").innerHTML = paper.readFirstReason ? `<strong>Read-first reason:</strong> ${escapeHtml(paper.readFirstReason)}` : "";
+
+  const doiLink = node.querySelector(".doi-link");
+  if (paper.doi) doiLink.href = `https://doi.org/${paper.doi}`;
+  else doiLink.setAttribute("aria-disabled", "true");
+  node.querySelector(".copy-citation").addEventListener("click", () => copyCitation(paper));
+  const readButton = node.querySelector(".mark-read");
+  readButton.textContent = storage.read.has(paper.id) ? "Read" : "Mark read";
+  readButton.addEventListener("click", () => toggleSet(storage.read, paper.id, "umrd-read", render));
+  const saveButton = node.querySelector(".save-paper");
+  saveButton.textContent = storage.saved.has(paper.id) ? "Saved" : "Save";
+  saveButton.addEventListener("click", () => toggleSet(storage.saved, paper.id, "umrd-saved", render));
+  return node;
+}
+
+function copyCitation(paper) {
+  const citation = `${paper.authors?.join(", ") || "Authors unavailable"} (${paper.onlinePublicationDate.slice(0, 4)}). ${paper.title}. ${paper.journal || "Journal unavailable"}. ${paper.doi ? `https://doi.org/${paper.doi}` : ""}`;
+  navigator.clipboard.writeText(citation);
+}
+
+function toggleSet(set, id, key, after) {
+  if (set.has(id)) set.delete(id);
+  else set.add(id);
+  localStorage.setItem(key, JSON.stringify([...set]));
+  after();
+}
+
+function exportCsv() {
+  const papers = state.papers.filter((paper) => storage.saved.has(paper.id));
+  const rows = [["title", "authors", "journal", "online_publication_date", "doi", "topic"], ...papers.map((paper) => [
+    paper.title,
+    paper.authors?.join("; ") || "",
+    paper.journal || "",
+    paper.onlinePublicationDate,
+    paper.doi || "",
+    paper.topic
+  ])];
+  download("urban-mosquito-reading-list.csv", rows.map((row) => row.map(csvCell).join(",")).join("\n"));
+}
+
+function exportBibtex() {
+  const papers = state.papers.filter((paper) => storage.saved.has(paper.id));
+  const text = papers.map((paper) => {
+    const key = `${paper.authors?.[0]?.split(" ").at(-1) || "paper"}${paper.onlinePublicationDate.slice(0, 4)}`.replace(/\W/g, "");
+    return `@article{${key},\n  title = {${paper.title}},\n  author = {${paper.authors?.join(" and ") || ""}},\n  journal = {${paper.journal || ""}},\n  year = {${paper.onlinePublicationDate.slice(0, 4)}},\n  doi = {${paper.doi || ""}}\n}`;
+  }).join("\n\n");
+  download("urban-mosquito-reading-list.bib", text);
+}
+
+function csvCell(value) {
+  return `"${String(value).replaceAll('"', '""')}"`;
+}
+
+function download(filename, text) {
+  const blob = new Blob([text], { type: "text/plain" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function latestDate(papers) {
+  return papers.map((paper) => paper.week).sort().at(-1) || new Date().toISOString().slice(0, 10);
+}
+
+function groupBy(items, selector) {
+  const map = new Map();
+  items.forEach((item) => {
+    const key = selector(item);
+    map.set(key, [...(map.get(key) || []), item]);
+  });
+  return map;
+}
+
+function formatDate(date) {
+  return new Intl.DateTimeFormat("en", { dateStyle: "medium" }).format(new Date(`${date}T00:00:00Z`));
+}
+
+function formatRelevanceScore(score) {
+  return Math.round((Number(score) || 0)) / 10;
+}
+
+function methodologyFor(paper) {
+  const approach = [paper.studyType, paper.evidenceLabel]
+    .filter(Boolean)
+    .filter((value, index, values) => values.indexOf(value) === index)
+    .join(" with ");
+  const details = [];
+  if (paper.countryOrRegion) details.push(paper.countryOrRegion);
+  if (paper.virus) details.push(paper.virus);
+  if (paper.vectorSpecies) details.push(`vector: ${paper.vectorSpecies}`);
+  if (paper.hostSpecies && !paper.hostSpecies.startsWith("Not applicable")) details.push(`host: ${paper.hostSpecies}`);
+  if (paper.studyPeriod && !paper.studyPeriod.startsWith("Not specified")) details.push(paper.studyPeriod);
+  return [approach || "Method not specified", details.join("; ")].filter(Boolean).join(". ");
+}
+
+function empty(text) {
+  const node = document.createElement("p");
+  node.className = "empty";
+  node.textContent = text;
+  return node;
+}
+
+function escapeHtml(text) {
+  const node = document.createElement("span");
+  node.textContent = text;
+  return node.innerHTML;
+}
+
+function italicizeSpecies(html) {
+  return html.replaceAll("Culex pipiens", "<i>Culex pipiens</i>").replaceAll("Cx. pipiens", "<i>Cx. pipiens</i>");
+}
