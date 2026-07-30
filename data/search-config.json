@@ -10,12 +10,12 @@
   },
   "researchContext": {
     "description": "Eco-evolutionary responses of Culex pipiens mosquitoes along urban-rural gradients in Belgium using common-garden experiments, thermal-tolerance assays, life-history traits, population-genetic structure, eDNA surveillance and mesocosm experiments on predator-based mosquito control.",
-    "rankingPrinciple": "Use these interests to score and explain relevance, but keep retrieval broad enough to include important methodological or conceptual papers on other mosquito species, disease vectors and urban-adapted organisms."
+    "rankingPrinciple": "Use these interests to score and explain relevance after applying the strict Culex, Aedes or Anopheles genus filter."
   },
   "speciesScope": {
     "priorityGenera": ["Culex", "Aedes", "Anopheles"],
-    "allowOtherMosquitoesForTransferableMethods": true,
-    "allowNonMosquitoUrbanModels": true,
+    "allowOtherMosquitoesForTransferableMethods": false,
+    "allowNonMosquitoUrbanModels": false,
     "transferableMethodTerms": [
       "urban",
       "rural",
