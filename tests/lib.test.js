@@ -95,16 +95,20 @@ test("rejects placeholders and records without a DOI", () => {
   }), true);
 });
 
-test("prioritizes Culex, Aedes and Anopheles while retaining transferable methods", () => {
+test("strictly limits retrieval to Culex, Aedes and Anopheles", () => {
   assert.equal(matchesSpeciesScope({
     title: "Swimming behaviour in Culex pupae"
   }, config), true);
   assert.equal(matchesSpeciesScope({
     title: "Mosquito eDNA surveillance in aquatic habitats"
-  }, config), true);
+  }, config), false);
   assert.equal(matchesSpeciesScope({
     title: "Urban-rural common garden in great tits"
-  }, config), true);
+  }, config), false);
+  assert.equal(matchesSpeciesScope({
+    title: "Nonlinear effects of the digital economy on urban-rural integration",
+    abstract: "A modelling study of cities along the Yangtze River."
+  }, config), false);
   assert.equal(matchesSpeciesScope({
     title: "Crop yield responses in wheat"
   }, config), false);
