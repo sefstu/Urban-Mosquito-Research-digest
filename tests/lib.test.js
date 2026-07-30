@@ -11,6 +11,7 @@ import {
   matchesSpeciesScope,
   normalizeDoi,
   normalizeTitle,
+  papersForWeeklyStatus,
   scoreRelevance
 } from "../scripts/lib.js";
 import config from "../data/search-config.json" with { type: "json" };
@@ -77,6 +78,16 @@ test("links later journal articles to matching preprints", () => {
     isPreprint: false
   }, archive);
   assert.equal(linked.id, "preprint-1");
+});
+
+test("preserves the current weekly status on an idempotent rerun", () => {
+  const weekly = papersForWeeklyStatus([], {
+    papers: [
+      { id: "current", week: "2026-07-30", topic: "Mosquito ecology and vector biology" },
+      { id: "older", week: "2026-07-23", topic: "Mosquito ecology and vector biology" }
+    ]
+  }, "2026-07-30");
+  assert.deepEqual(weekly.map((paper) => paper.id), ["current"]);
 });
 
 test("rejects placeholders and records without a DOI", () => {
