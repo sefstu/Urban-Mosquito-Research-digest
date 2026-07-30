@@ -1,0 +1,51 @@
+{
+  "runDate": "2026-07-28",
+  "windowStart": "2026-07-21",
+  "windowEnd": "2026-07-27",
+  "completedAt": "2026-07-30T00:00:00.000Z",
+  "acceptedCount": 6,
+  "topics": [
+    {
+      "name": "Urban evolution and eco-evolution",
+      "count": 1,
+      "message": "1 new paper identified this week"
+    },
+    {
+      "name": "Thermal adaptation and tolerance",
+      "count": 0,
+      "message": "No new papers identified this week"
+    },
+    {
+      "name": "Mosquito ecology and vector biology",
+      "count": 2,
+      "message": "2 new papers identified this week"
+    },
+    {
+      "name": "Oviposition and habitat choice",
+      "count": 1,
+      "message": "1 new paper identified this week"
+    },
+    {
+      "name": "Mosquito biological control",
+      "count": 1,
+      "message": "1 new paper identified this week"
+    },
+    {
+      "name": "eDNA surveillance",
+      "count": 0,
+      "message": "No new papers identified this week"
+    },
+    {
+      "name": "European arbovirus dynamics",
+      "count": 1,
+      "message": "1 new paper identified this week"
+    }
+  ],
+  "sources": {
+    "Manual publisher verification": {
+      "requests": 6,
+      "failures": 0,
+      "records": 6
+    }
+  }
+}
