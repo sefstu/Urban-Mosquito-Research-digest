@@ -43,13 +43,7 @@ The website also displays that result for each topic, so older papers are never 
 
 ## GitHub Pages Deployment
 
-1. Create a new GitHub repository. Use a public repository for GitHub Pages on GitHub Free; private-repository Pages requires a paid plan.
-2. Copy this project into the repository root.
-3. Commit and push all files.
-4. In GitHub, open `Settings` -> `Pages`.
-5. Under `Build and deployment`, choose `Deploy from a branch`.
-6. Select the `main` branch and `/ (root)` folder.
-7. Save. GitHub will publish the site at the Pages URL shown in that settings panel.
+The weekly workflow updates the archive and deploys that same verified source state to GitHub Pages. In GitHub, open `Settings` -> `Pages` and set the publishing source to `GitHub Actions`. Manual workflow runs deploy the site too.
 
 ## Automatic Monday Update
 
