@@ -32,10 +32,11 @@ const fields = {
   sort: document.querySelector("#sort")
 };
 
+const dataVersion = Date.now();
 const data = await Promise.all([
-  fetch("data/papers.json").then((response) => response.json()),
-  fetch("data/history.json").then((response) => response.json()),
-  fetch("data/run-status.json").then((response) => response.json())
+  fetch(`data/papers.json?v=${dataVersion}`, { cache: "no-store" }).then((response) => response.json()),
+  fetch(`data/history.json?v=${dataVersion}`, { cache: "no-store" }).then((response) => response.json()),
+  fetch(`data/run-status.json?v=${dataVersion}`, { cache: "no-store" }).then((response) => response.json())
 ]);
 
 state.papers = data[0].papers;
