@@ -128,6 +128,9 @@ test("uses work-package fit rather than mosquito genus alone", () => {
     title: "Urban-rural evolution of thermal tolerance in Aedes mosquitoes"
   }, config), true);
   assert.equal(matchesSpeciesScope({
+    title: "Infrared thermal imaging of Aedes mosquito habitats"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
     title: "Thermal tolerance and body size of Anopheles mosquitoes in Spain"
   }, config), true);
   assert.equal(matchesSpeciesScope({
@@ -153,6 +156,10 @@ test("uses work-package fit rather than mosquito genus alone", () => {
   }, config), false);
   assert.equal(matchesSpeciesScope({
     title: "Nonlinear effects of the digital economy on urban-rural integration"
+  }, config), false);
+  assert.equal(matchesSpeciesScope({
+    title: "Greywater reuse for urban agriculture",
+    abstract: "Urbanisation affects water management and may create mosquito habitat."
   }, config), false);
 });
 
