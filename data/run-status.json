@@ -2,13 +2,13 @@
   "runDate": "2026-07-31",
   "windowStart": "2026-07-24",
   "windowEnd": "2026-07-30",
-  "completedAt": "2026-07-31T01:30:41.525Z",
-  "acceptedCount": 6,
+  "completedAt": "2026-07-31T15:04:43.876Z",
+  "acceptedCount": 4,
   "topics": [
     {
       "name": "Urban evolution and eco-evolution",
-      "count": 2,
-      "message": "2 new papers identified this week"
+      "count": 0,
+      "message": "No new papers identified this week"
     },
     {
       "name": "Thermal adaptation and tolerance",
@@ -45,12 +45,12 @@
     "OpenAlex": {
       "requests": 31,
       "failures": 0,
-      "records": 185
+      "records": 187
     },
     "Crossref": {
       "requests": 31,
-      "failures": 12,
-      "records": 1851
+      "failures": 9,
+      "records": 2155
     },
     "Europe PMC": {
       "requests": 31,

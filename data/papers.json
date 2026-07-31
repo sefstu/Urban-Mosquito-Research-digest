@@ -1,41 +1,6 @@
 {
-  "generatedAt": "2026-07-31T01:30:41.525Z",
+  "generatedAt": "2026-07-31T15:04:43.876Z",
   "papers": [
-    {
-      "id": "doi-10-1007-s44274-026-00925-8",
-      "title": "Assessing greywater management and reuse options for smallholder urban farmers and eatery operators in Mbarara City, Uganda",
-      "authors": [
-        "Justus Asasira",
-        "Godfrey Magyezi Begumisa",
-        "Pascal Amandu",
-        "Jane Yatuha"
-      ],
-      "journal": "Discover Environment",
-      "onlinePublicationDate": "2026-07-29",
-      "week": "2026-07-31",
-      "doi": "10.1007/s44274-026-00925-8",
-      "topic": "Urban evolution and eco-evolution",
-      "taxon": "Other mosquitoes",
-      "studyType": "field",
-      "evidenceLabel": "phenotypic association",
-      "summary": "Rapid urbanisation, climate variability, and increasing water scarcity have intensified interest in greywater reuse for urban agriculture in developing countries.  However, evidence on the management, quality and reuse potential of greywater from small-scale eateries remains limited.",
-      "mainFinding": "Strengthening decentralized treatment, hygiene practices, and policy guidance could enable safe integration of greywater into sustainable urban agriculture systems.",
-      "whyItMatters": "Relevant to separating genetic, plastic and environmental components of urban-rural trait differences.",
-      "openAccess": true,
-      "source": "OpenAlex",
-      "relevanceScore": 72,
-      "readFirst": false,
-      "readFirstRank": null,
-      "readFirstReason": "",
-      "isPreprint": false,
-      "virus": "",
-      "vectorSpecies": "Mosquitoes",
-      "hostSpecies": "",
-      "studyPeriod": "Not specified in available metadata",
-      "relevanceReasons": [
-        "urban-rural mosquito comparison"
-      ]
-    },
     {
       "id": "doi-10-1038-s41598-026-61694-1",
       "title": "Infrared thermal imaging to determine temperature parameters of dengue vector habitats across ecological regions of Nepal: a pilot feasibility study",
@@ -63,7 +28,7 @@
       "whyItMatters": "Conceptual or methodological relevance to mosquito eco-evolution and vector ecology.",
       "openAccess": true,
       "source": "OpenAlex",
-      "relevanceScore": 72,
+      "relevanceScore": 56,
       "readFirst": false,
       "readFirstRank": null,
       "readFirstReason": "",
@@ -73,7 +38,7 @@
       "hostSpecies": "",
       "studyPeriod": "Not specified in available metadata",
       "relevanceReasons": [
-        "urban-rural mosquito comparison"
+        "transferable mosquito thermal method"
       ]
     },
     {
@@ -148,40 +113,6 @@
       ]
     },
     {
-      "id": "doi-10-4103-jvbd-jvbd-138-26",
-      "title": "Integrating GIS and spatial analysis for mosquito-borne disease risk assessment: A Case Study of Sambalpur City",
-      "authors": [
-        "Avijit Bag",
-        "Ashalata Jhankar",
-        "Arabinda Sharma"
-      ],
-      "journal": "Journal of Vector Borne Diseases",
-      "onlinePublicationDate": "2026-07-25",
-      "week": "2026-07-31",
-      "doi": "10.4103/jvbd.jvbd_138_26",
-      "topic": "Urban evolution and eco-evolution",
-      "taxon": "Other mosquitoes",
-      "studyType": "field",
-      "evidenceLabel": "phenotypic association",
-      "summary": "Background &amp; objectives: The mounting urban health challenges caused by mosquito-borne diseases–including Dengue, Malaria, and Japanese Encephalitis (JE)– in Indian cities are partly due to rapid urbanisation processes and due to climate change.  This research assesses the heterogeneous risk of mosquito-borne diseases (MBD) in Sambalpur City (Odisha, India) and uses geospatial analysis to identify environmental, climatic, and service provision drivers of transmission.",
-      "mainFinding": "The methodology employed offers a standard, easy-to-replicate approach to sustainable MBD management practices in mid-sized Indian cities.",
-      "whyItMatters": "Relevant to separating genetic, plastic and environmental components of urban-rural trait differences.",
-      "openAccess": null,
-      "source": "Crossref",
-      "relevanceScore": 72,
-      "readFirst": false,
-      "readFirstRank": null,
-      "readFirstReason": "",
-      "isPreprint": false,
-      "virus": "",
-      "vectorSpecies": "Mosquitoes",
-      "hostSpecies": "",
-      "studyPeriod": "Not specified in available metadata",
-      "relevanceReasons": [
-        "urban-rural mosquito comparison"
-      ]
-    },
-    {
       "id": "doi-10-1186-s13071-026-07531-w",
       "title": "Insight into eco-epidemiological traits of European native vector mosquitoes for disease transmission",
       "authors": [
@@ -245,7 +176,7 @@
       "whyItMatters": "Conceptual or methodological relevance to mosquito eco-evolution and vector ecology.",
       "openAccess": false,
       "source": "OpenAlex",
-      "relevanceScore": 72,
+      "relevanceScore": 84,
       "readFirst": false,
       "readFirstRank": null,
       "readFirstReason": "",
