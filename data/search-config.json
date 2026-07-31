@@ -50,8 +50,9 @@
   "retrievalRules": {
     "mosquitoTerms": ["mosquito", "mosquitoes", "culicidae", "culex", "aedes", "anopheles", "toxorhynchites"],
     "ovipositionTerms": ["oviposition", "egg laying", "egg-laying", "egg raft", "gravid", "ovitrap", "oviposition site", "habitat choice"],
-    "urbanRuralTerms": ["urban-rural", "urban rural", "rural-urban", "rural urban", "urbanization", "urbanisation", "urban adaptation", "urban evolution"],
+    "urbanRuralTerms": ["urban-rural", "urban rural", "rural-urban", "rural urban", "urban and rural", "rural and urban", "urban versus rural", "rural versus urban", "urban adaptation", "urban evolution"],
     "lifeHistoryTerms": ["life history", "life-history", "thermal tolerance", "ctmax", "ctmin", "critical thermal", "development time", "development rate", "survival", "body size", "wing length", "fecundity", "longevity", "energetic content", "energy reserve", "lipid", "glycogen", "diapause"],
+    "thermalMethodTerms": ["thermal imaging", "temperature parameter", "thermal assay", "thermal tolerance", "critical thermal", "ctmax", "ctmin"],
     "invertebratePredatorTerms": ["aquatic predator", "macroinvertebrate", "invertebrate predator", "predation rate", "predator-prey", "functional response", "copepod", "notonect", "backswimmer", "dragonfly", "odonata", "dytiscid", "water beetle", "toxorhynchites", "larvivorous"],
     "aquaticBehaviourTerms": ["swimming behaviour", "swimming behavior", "pupal movement", "pupal mobility", "larval movement", "aquatic behaviour", "aquatic behavior"],
     "otherBiocontrolTerms": ["biological control", "biocontrol", "wolbachia", "bacillus thuringiensis israelensis", "bti", "microbial control"],
