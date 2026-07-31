@@ -61,32 +61,39 @@ export function matchesExclusionRules(record, exclusionTerms = []) {
 }
 
 export function matchesSpeciesScope(record, config) {
-  const text = searchableText(record);
-  const scope = config.speciesScope || {};
-  const priorityGenera = scope.priorityGenera || ["culex", "aedes", "anopheles"];
-  if (priorityGenera.some((genus) => {
-    const escaped = String(genus).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    return new RegExp(`\\b${escaped}\\b`, "i").test(text);
-  })) return true;
+  const text = researchText(record);
+  const rules = config.retrievalRules || {};
+  const isMosquitoPaper = hasAny(
+    text,
+    rules.mosquitoTerms || ["mosquito", "culicidae", "culex", "aedes", "anopheles"]
+  );
+  if (!isMosquitoPaper) return false;
 
-  const isMosquitoPaper = /\b(mosquito|mosquitoes|culicidae)\b/i.test(text);
-  const methodTerms = (scope.transferableMethodTerms || []).map((term) => String(term).toLowerCase());
-  if (isMosquitoPaper && scope.allowOtherMosquitoesForTransferableMethods !== false) {
-    return methodTerms.some((term) => text.includes(term));
-  }
+  const isCulex = /\bculex\b|\bcx\.\s/i.test(text);
+  const isEuropean = EUROPE_TERMS.some((term) => text.includes(term));
+  const isOviposition = hasAny(text, rules.ovipositionTerms);
+  const isUrbanRural = hasAny(text, rules.urbanRuralTerms);
+  const isLifeHistory = hasAny(text, rules.lifeHistoryTerms);
+  const isInvertebrateControl = hasAny(text, rules.invertebratePredatorTerms);
+  const isAquaticBehaviour = hasAny(text, rules.aquaticBehaviourTerms);
+  const isOtherBiocontrol = hasAny(text, rules.otherBiocontrolTerms);
+  const hasEcologicalContext = hasAny(text, rules.ecologicalContextTerms);
+  const isEdna = hasAny(text, rules.ednaTerms);
+  const isPopulationStudy = hasAny(text, rules.populationTerms);
+  const isEuropeanVectorTraitStudy = isEuropean && hasAny(text, rules.europeanVectorTraitTerms);
 
-  if (scope.allowNonMosquitoUrbanModels !== false) {
-    const conceptualTerms = (scope.nonMosquitoConceptualTerms || [
-      "urban adaptation",
-      "urban evolution",
-      "urban rural",
-      "common garden",
-      "reciprocal transplant"
-    ]).map((term) => String(term).toLowerCase());
-    return conceptualTerms.some((term) => text.includes(term));
-  }
-
-  return false;
+  return Boolean(
+    (isCulex && isOviposition) ||
+    isUrbanRural ||
+    (isEuropean && isLifeHistory) ||
+    isInvertebrateControl ||
+    isAquaticBehaviour ||
+    (isOtherBiocontrol && hasEcologicalContext) ||
+    isEdna ||
+    (isEuropean && isCulex && isPopulationStudy) ||
+    isEuropeanVectorTraitStudy ||
+    isEuropeanArbovirusRecord(record)
+  );
 }
 
 export function addToHistory(record, history) {
@@ -102,11 +109,15 @@ export function findLinkedPreprint(record, archive) {
   return archive.papers.find((paper) => paper.isPreprint && normalizeTitle(paper.title) === title) || null;
 }
 
-export function papersForWeeklyStatus(accepted, archive, runDate) {
+export function papersForWeeklyStatus(accepted, archive, runDate, lookbackDays = 7) {
   const seen = new Set();
   return [
     ...accepted,
-    ...archive.papers.filter((paper) => paper.week === runDate)
+    ...archive.papers.filter((paper) => isWithinPrecedingDays(
+      paper.onlinePublicationDate,
+      runDate,
+      lookbackDays
+    ))
   ].filter((paper) => {
     const key = paper.id || normalizeDoi(paper.doi) || normalizeTitle(paper.title);
     if (!key || seen.has(key)) return false;
@@ -135,23 +146,76 @@ export function earliestOnlineDate(record) {
 }
 
 export function isEuropeanArbovirusRecord(record) {
-  const text = searchableText(record);
-  const mentionsVirus = /\b(wnv|west nile virus|sinv|sindbis virus)\b/i.test(text);
+  const text = researchText(record);
+  const mentionsVirus = isWnvOrSinvRecord(record);
   const mentionsEurope = EUROPE_TERMS.some((term) => text.includes(term));
   const explicitEuropeConsequence = /european transmission|european emergence|risk for europe|introduction into europe/i.test(text);
   return mentionsVirus && (mentionsEurope || explicitEuropeConsequence);
 }
 
+export function isWnvOrSinvRecord(record) {
+  return /\b(wnv|west nile virus|sinv|sindbis virus)\b/i.test(researchText(record));
+}
+
 export function scoreRelevance(record, config) {
-  const text = searchableText(record);
-  let score = 0;
-  for (const [phrase, weight] of Object.entries(config.relevanceWeights)) {
-    const terms = phrase.toLowerCase().split(/\s+or\s+|\s+/).filter((term) => term.length > 2);
-    if (terms.some((term) => text.includes(term))) score += Number(weight);
+  const text = researchText(record);
+  const rules = config.retrievalRules || {};
+  const reasons = [];
+  const add = (points, reason) => {
+    reasons.push({ points, reason });
+    return points;
+  };
+  const isCulex = /\bculex\b|\bcx\.\s/i.test(text);
+  const isPipiens = /\bculex pipiens\b|\bcx\.\s*pipiens\b/i.test(text);
+  const isEuropean = EUROPE_TERMS.some((term) => text.includes(term));
+  const isOviposition = hasAny(text, rules.ovipositionTerms);
+  const isUrbanRural = hasAny(text, rules.urbanRuralTerms);
+  const isLifeHistory = hasAny(text, rules.lifeHistoryTerms);
+  const isInvertebrateControl = hasAny(text, rules.invertebratePredatorTerms);
+  const isAquaticBehaviour = hasAny(text, rules.aquaticBehaviourTerms);
+  const isOtherBiocontrol = hasAny(text, rules.otherBiocontrolTerms);
+  const hasEcologicalContext = hasAny(text, rules.ecologicalContextTerms);
+  const isEdna = hasAny(text, rules.ednaTerms);
+  const isPopulationStudy = hasAny(text, rules.populationTerms);
+  const isArbovirus = isEuropeanArbovirusRecord(record);
+  const isEuropeanVectorTraitStudy = isEuropean && hasAny(text, rules.europeanVectorTraitTerms);
+
+  let score = 8;
+  if (isCulex && isOviposition) score += add(58, "WP1 Culex oviposition");
+  if (isOviposition && hasAny(text, ["water volume", "temperature", "surface area", "water surface"])) {
+    score += add(18, "WP1 habitat-choice variable");
   }
-  const topic = config.topics.find((item) => item.name === record.topic);
-  if (topic) score += topic.weight;
-  if (record.isPreprint) score -= 6;
+  if (isUrbanRural) score += add(64, "urban-rural mosquito comparison");
+  if (isUrbanRural && isLifeHistory) score += add(18, "WP2 trait response");
+  if (isEuropean && isLifeHistory) score += add(54, "European mosquito life history");
+  if (isInvertebrateControl) score += add(64, "WP3 invertebrate predator biocontrol");
+  if (isInvertebrateControl && hasAny(text, ["predation rate", "functional response", "mesocosm", "experiment"])) {
+    score += add(16, "WP3 experimental method");
+  }
+  if (isAquaticBehaviour) score += add(70, "aquatic behaviour affecting predator exposure");
+  if (isOtherBiocontrol && hasEcologicalContext) score += add(55, "context-dependent mosquito biocontrol");
+  if (isOtherBiocontrol && hasAny(text, ["temperature", "thermal", "climate", "warming", "heatwave"])) {
+    score += add(15, "temperature-dependent control efficacy");
+  }
+  if (isEdna) score += add(60, "mosquito eDNA surveillance");
+  if (isEuropean && isCulex && isPopulationStudy) score += add(60, "European Culex population structure");
+  if (isEuropeanVectorTraitStudy) score += add(70, "European vector-trait synthesis");
+  if (isArbovirus) score += add(64, "European WNV/SINV dynamics");
+
+  if (isPipiens) score += add(14, "Culex pipiens");
+  else if (isCulex && isOviposition) score += add(7, "Culex");
+  if (isEuropean && (isOviposition || isUrbanRural || isLifeHistory || isInvertebrateControl || isAquaticBehaviour || isEdna)) {
+    score += add(7, "European setting");
+  }
+  if (hasAny(text, ["common garden", "reciprocal transplant", "reared population", "laboratory reared"])) {
+    score += add(10, "genetic-versus-environmental design");
+  }
+  if (record.isPreprint) score -= 2;
+
+  record.relevanceReasons = reasons
+    .sort((a, b) => b.points - a.points)
+    .slice(0, 3)
+    .map((item) => item.reason);
   return Math.max(0, Math.min(100, score));
 }
 
@@ -189,7 +253,33 @@ export function searchableText(record) {
     record.countryOrRegion,
     record.virus,
     record.vectorSpecies,
-    record.hostSpecies
+    record.hostSpecies,
+    record.summary,
+    record.mainFinding,
+    record.whyItMatters,
+    record.studyType,
+    record.evidenceLabel
+  ].filter(Boolean).join(" ").toLowerCase();
+}
+
+function hasAny(text, terms = []) {
+  return terms.some((term) => text.includes(String(term).toLowerCase()));
+}
+
+function researchText(record) {
+  return [
+    record.title,
+    record.abstract,
+    record.journal,
+    record.taxon,
+    record.countryOrRegion,
+    record.virus,
+    record.vectorSpecies,
+    record.hostSpecies,
+    record.summary,
+    record.mainFinding,
+    record.studyType,
+    record.evidenceLabel
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
