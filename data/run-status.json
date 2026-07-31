@@ -1,9 +1,9 @@
 {
-  "runDate": "2026-07-30",
-  "windowStart": "2026-07-23",
-  "windowEnd": "2026-07-29",
-  "completedAt": "2026-07-30T18:25:37.182Z",
-  "acceptedCount": 20,
+  "runDate": "2026-07-31",
+  "windowStart": "2026-07-24",
+  "windowEnd": "2026-07-30",
+  "completedAt": "2026-07-31T01:30:41.525Z",
+  "acceptedCount": 6,
   "topics": [
     {
       "name": "Urban evolution and eco-evolution",
@@ -17,8 +17,8 @@
     },
     {
       "name": "Mosquito ecology and vector biology",
-      "count": 18,
-      "message": "18 new papers identified this week"
+      "count": 3,
+      "message": "3 new papers identified this week"
     },
     {
       "name": "Oviposition and habitat choice",
@@ -37,25 +37,25 @@
     },
     {
       "name": "European arbovirus dynamics",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     }
   ],
   "sources": {
     "OpenAlex": {
-      "requests": 25,
+      "requests": 31,
       "failures": 0,
-      "records": 303
+      "records": 185
     },
     "Crossref": {
-      "requests": 25,
-      "failures": 10,
-      "records": 1421
+      "requests": 31,
+      "failures": 12,
+      "records": 1851
     },
     "Europe PMC": {
-      "requests": 25,
+      "requests": 31,
       "failures": 0,
-      "records": 10
+      "records": 3
     }
   }
 }
