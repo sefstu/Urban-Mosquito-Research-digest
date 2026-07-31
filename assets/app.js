@@ -17,7 +17,12 @@ const state = {
 
 const storage = {
   read: new Set(JSON.parse(localStorage.getItem("umrd-read") || "[]")),
-  saved: new Set(JSON.parse(localStorage.getItem("umrd-saved") || "[]"))
+  saved: new Set(JSON.parse(localStorage.getItem("umrd-saved") || "[]")),
+  savedPapers: new Map(
+    JSON.parse(localStorage.getItem("umrd-saved-papers") || "[]")
+      .filter((paper) => paper?.id)
+      .map((paper) => [paper.id, paper])
+  )
 };
 
 const fields = {
@@ -42,6 +47,7 @@ const data = await Promise.all([
 state.papers = data[0].papers;
 state.history = data[1];
 state.status = data[2];
+refreshSavedPaperCache();
 hydrateControls();
 render();
 
@@ -78,7 +84,7 @@ function render() {
   const papers = filteredPapers();
   const latest = state.status.runDate || latestDate(state.papers);
   document.querySelector("#latest-update").textContent = `Latest weekly check: ${formatDate(latest)}. Publication window: ${formatDateRange(state.status.windowStart, state.status.windowEnd)}.`;
-  document.querySelector("#stat-new").textContent = state.status.acceptedCount ?? state.papers.filter((paper) => paper.week === latest).length;
+  document.querySelector("#stat-new").textContent = state.status.acceptedCount ?? state.papers.filter(isCurrentWindowPaper).length;
   document.querySelector("#stat-total").textContent = state.papers.length;
   document.querySelector("#stat-topics").textContent = (state.status.topics || []).filter((topic) => topic.count > 0).length;
   document.querySelector("#result-count").textContent = `${papers.length} paper${papers.length === 1 ? "" : "s"} shown.`;
@@ -93,7 +99,7 @@ function render() {
 function filteredPapers() {
   const query = state.filters.search.trim().toLowerCase();
   return state.papers
-    .filter((paper) => state.filters.archive || paper.week === state.status.runDate)
+    .filter((paper) => state.filters.archive || isCurrentWindowPaper(paper))
     .filter((paper) => !query || haystack(paper).includes(query))
     .filter((paper) => !state.filters.topic || paper.topic === state.filters.topic)
     .filter((paper) => !state.filters.taxon || paper.taxon === state.filters.taxon)
@@ -120,15 +126,15 @@ function haystack(paper) {
     paper.virus,
     paper.countryOrRegion,
     paper.vectorSpecies,
-    paper.hostSpecies
+    paper.hostSpecies,
+    paper.relevanceReasons?.join(" ")
   ].filter(Boolean).join(" ").toLowerCase();
 }
 
 function renderReadFirst() {
   const container = document.querySelector("#read-first-list");
-  const latest = state.status.runDate || latestDate(state.papers);
   const papers = state.papers
-    .filter((paper) => paper.week === latest && paper.readFirst)
+    .filter((paper) => isCurrentWindowPaper(paper) && paper.readFirst)
     .sort((a, b) => a.readFirstRank - b.readFirstRank)
     .slice(0, 3);
   container.replaceChildren(...(papers.length ? papers.map(cardFor) : [empty("No new papers identified this week.")]));
@@ -198,7 +204,7 @@ function renderArchive() {
 }
 
 function renderReadingList() {
-  const saved = state.papers.filter((paper) => storage.saved.has(paper.id));
+  const saved = savedPaperRecords();
   const container = document.querySelector("#reading-list");
   container.replaceChildren(...(saved.length ? saved.map(cardFor) : [empty("No saved papers yet.")]));
 }
@@ -215,6 +221,9 @@ function cardFor(paper) {
   node.querySelector(".relevance-score strong").textContent = `${score}/10`;
   node.querySelector("h3").innerHTML = italicizeSpecies(escapeHtml(paper.title));
   node.querySelector(".meta").textContent = `${paper.authors?.join(", ") || "Authors unavailable"} · ${formatDate(paper.onlinePublicationDate)}`;
+  node.querySelector(".relevance-basis").textContent = paper.relevanceReasons?.length
+    ? `Score basis: ${paper.relevanceReasons.join(" · ")}`
+    : "";
   node.querySelector(".summary").textContent = paper.summary || "Abstract unavailable";
 
   const journal = [paper.journal || "Journal unavailable", paper.source].filter(Boolean).join(" · ");
@@ -245,7 +254,7 @@ function cardFor(paper) {
   readButton.addEventListener("click", () => toggleSet(storage.read, paper.id, "umrd-read", render));
   const saveButton = node.querySelector(".save-paper");
   saveButton.textContent = storage.saved.has(paper.id) ? "Saved" : "Save";
-  saveButton.addEventListener("click", () => toggleSet(storage.saved, paper.id, "umrd-saved", render));
+  saveButton.addEventListener("click", () => toggleSavedPaper(paper));
   return node;
 }
 
@@ -261,8 +270,38 @@ function toggleSet(set, id, key, after) {
   after();
 }
 
+function toggleSavedPaper(paper) {
+  if (storage.saved.has(paper.id)) {
+    storage.saved.delete(paper.id);
+    storage.savedPapers.delete(paper.id);
+  } else {
+    storage.saved.add(paper.id);
+    storage.savedPapers.set(paper.id, paper);
+  }
+  persistSavedPapers();
+  render();
+}
+
+function refreshSavedPaperCache() {
+  state.papers
+    .filter((paper) => storage.saved.has(paper.id))
+    .forEach((paper) => storage.savedPapers.set(paper.id, paper));
+  persistSavedPapers();
+}
+
+function persistSavedPapers() {
+  localStorage.setItem("umrd-saved", JSON.stringify([...storage.saved]));
+  localStorage.setItem("umrd-saved-papers", JSON.stringify([...storage.savedPapers.values()]));
+}
+
+function savedPaperRecords() {
+  return [...storage.saved]
+    .map((id) => state.papers.find((paper) => paper.id === id) || storage.savedPapers.get(id))
+    .filter(Boolean);
+}
+
 function exportCsv() {
-  const papers = state.papers.filter((paper) => storage.saved.has(paper.id));
+  const papers = savedPaperRecords();
   const rows = [["title", "authors", "journal", "online_publication_date", "doi", "topic"], ...papers.map((paper) => [
     paper.title,
     paper.authors?.join("; ") || "",
@@ -275,7 +314,7 @@ function exportCsv() {
 }
 
 function exportBibtex() {
-  const papers = state.papers.filter((paper) => storage.saved.has(paper.id));
+  const papers = savedPaperRecords();
   const text = papers.map((paper) => {
     const key = `${paper.authors?.[0]?.split(" ").at(-1) || "paper"}${paper.onlinePublicationDate.slice(0, 4)}`.replace(/\W/g, "");
     return `@article{${key},\n  title = {${paper.title}},\n  author = {${paper.authors?.join(" and ") || ""}},\n  journal = {${paper.journal || ""}},\n  year = {${paper.onlinePublicationDate.slice(0, 4)}},\n  doi = {${paper.doi || ""}}\n}`;
@@ -299,6 +338,15 @@ function download(filename, text) {
 
 function latestDate(papers) {
   return papers.map((paper) => paper.week).sort().at(-1) || new Date().toISOString().slice(0, 10);
+}
+
+function isCurrentWindowPaper(paper) {
+  const start = state.status.windowStart;
+  const end = state.status.windowEnd;
+  if (start && end) {
+    return paper.onlinePublicationDate >= start && paper.onlinePublicationDate <= end;
+  }
+  return paper.week === state.status.runDate;
 }
 
 function groupBy(items, selector) {
