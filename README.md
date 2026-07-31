@@ -73,6 +73,19 @@ The `European arbovirus dynamics` topic applies a strict geographic filter:
 - Report country or region, virus, mosquito vector species, host species when relevant, study period, evidence type, main change or finding, and relevance to European transmission risk.
 - Keep preprints separate and link later journal versions rather than counting them as entirely new studies.
 
+## Research Relevance Rules
+
+Retrieval is organized around three work packages. A Culex, Aedes or Anopheles mention by itself is not enough.
+
+- WP1: Culex oviposition, with highest priority for Culex pipiens and studies of water volume, water temperature, surface area, habitat choice and urban-rural differences.
+- WP2: urban-rural evolutionary or ecological comparisons in any mosquito species, plus European mosquito life-history studies covering thermal tolerance, body size, energetic content, development, survival and related traits.
+- WP3: mosquito biological control using aquatic invertebrate predators in any mosquito species, including predation rates, functional responses and mesocosm methods.
+- Aquatic swimming or movement behaviour is included when it informs predator exposure or predation experiments.
+- Temperature-dependent Wolbachia, Bti and other ecological biological-control studies remain eligible as transferable secondary evidence.
+- Mosquito eDNA surveillance remains an additional watch.
+
+The 0-10 score is theme-first. Direct work-package fit contributes most; Culex pipiens, European geography, common-garden designs and close methodological transfer then adjust priority.
+
 ## Species Scope
 
 - `Culex`, `Aedes`, and `Anopheles` are the priority mosquito genera.
