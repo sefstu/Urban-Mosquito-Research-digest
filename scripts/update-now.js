@@ -9,6 +9,7 @@ import {
   hasVerifiedScholarlyIdentity,
   isDuplicate,
   isEuropeanArbovirusRecord,
+  isWnvOrSinvRecord,
   isWithinPrecedingDays,
   findLinkedPreprint,
   matchesExclusionRules,
@@ -50,6 +51,7 @@ for (const raw of retrieval.records) {
 
   const topic = classifyTopic(raw, config);
   if (!topic) continue;
+  if (isWnvOrSinvRecord(raw) && !isEuropeanArbovirusRecord(raw)) continue;
   if (topic === "European arbovirus dynamics" && !isEuropeanArbovirusRecord(raw)) continue;
 
   const record = normalizeRecord(raw, topic, onlineDate, config);
@@ -74,10 +76,25 @@ for (const raw of retrieval.records) {
 }
 
 await addOptionalAiSummaries(accepted);
-markReadFirst(accepted);
 
 const window = publicationWindow(runDate, config.lookbackDays);
-const weeklyPapers = papersForWeeklyStatus(accepted, paperArchive, runDate);
+const inScopeArchive = paperArchive.papers.filter((paper) => matchesSpeciesScope(paper, config));
+const nextPapers = [...accepted, ...inScopeArchive]
+  .filter((paper, index, papers) => papers.findIndex((candidate) => candidate.id === paper.id) === index)
+  .sort((a, b) => b.onlinePublicationDate.localeCompare(a.onlinePublicationDate));
+nextPapers.forEach((paper) => {
+  paper.relevanceScore = scoreRelevance(paper, config);
+  paper.readFirst = false;
+  paper.readFirstRank = null;
+  paper.readFirstReason = "";
+});
+const weeklyPapers = papersForWeeklyStatus(
+  [],
+  { papers: nextPapers },
+  runDate,
+  config.lookbackDays
+);
+markReadFirst(weeklyPapers);
 const runStatus = {
   runDate,
   windowStart: window.start,
@@ -99,7 +116,7 @@ const runStatus = {
 
 const nextArchive = {
   generatedAt: new Date().toISOString(),
-  papers: [...accepted, ...paperArchive.papers].sort((a, b) => b.onlinePublicationDate.localeCompare(a.onlinePublicationDate))
+  papers: nextPapers
 };
 
 if (process.env.DRY_RUN === "1") {
@@ -108,11 +125,12 @@ if (process.env.DRY_RUN === "1") {
 }
 
 await fs.writeFile(runStatusPath, `${JSON.stringify(runStatus, null, 2)}\n`);
+await fs.writeFile(dataPath, `${JSON.stringify(nextArchive, null, 2)}\n`);
 if (accepted.length) {
-  await fs.writeFile(dataPath, `${JSON.stringify(nextArchive, null, 2)}\n`);
   await fs.writeFile(historyPath, `${JSON.stringify(history, null, 2)}\n`);
   console.log(`Added ${accepted.length} new paper${accepted.length === 1 ? "" : "s"}.`);
 } else {
+  console.log(`Re-scored ${nextPapers.length} archived paper${nextPapers.length === 1 ? "" : "s"} and removed out-of-scope records from display.`);
   console.log("No qualifying new papers found for this weekly run.");
   runStatus.topics.forEach((topic) => console.log(`${topic.name}: ${topic.message}`));
 }
@@ -219,6 +237,9 @@ function markReadFirst(records) {
 }
 
 function explainReadFirst(record) {
+  if (record.relevanceReasons?.length) {
+    return `Ranked highly for ${record.relevanceReasons.slice(0, 3).join(", ")}.`;
+  }
   const reasons = [];
   const text = `${record.title} ${record.summary} ${record.topic}`.toLowerCase();
   if (text.includes("culex pipiens")) reasons.push("directly involves Culex pipiens");
