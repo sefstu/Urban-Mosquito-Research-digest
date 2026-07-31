@@ -74,6 +74,7 @@ export function matchesSpeciesScope(record, config) {
   const isOviposition = hasAny(text, rules.ovipositionTerms);
   const isUrbanRural = hasAny(text, rules.urbanRuralTerms);
   const isLifeHistory = hasAny(text, rules.lifeHistoryTerms);
+  const isThermalMethod = hasAny(text, rules.thermalMethodTerms);
   const isInvertebrateControl = hasAny(text, rules.invertebratePredatorTerms);
   const isAquaticBehaviour = hasAny(text, rules.aquaticBehaviourTerms);
   const isOtherBiocontrol = hasAny(text, rules.otherBiocontrolTerms);
@@ -86,6 +87,7 @@ export function matchesSpeciesScope(record, config) {
     (isCulex && isOviposition) ||
     isUrbanRural ||
     (isEuropean && isLifeHistory) ||
+    isThermalMethod ||
     isInvertebrateControl ||
     isAquaticBehaviour ||
     (isOtherBiocontrol && hasEcologicalContext) ||
@@ -171,6 +173,7 @@ export function scoreRelevance(record, config) {
   const isOviposition = hasAny(text, rules.ovipositionTerms);
   const isUrbanRural = hasAny(text, rules.urbanRuralTerms);
   const isLifeHistory = hasAny(text, rules.lifeHistoryTerms);
+  const isThermalMethod = hasAny(text, rules.thermalMethodTerms);
   const isInvertebrateControl = hasAny(text, rules.invertebratePredatorTerms);
   const isAquaticBehaviour = hasAny(text, rules.aquaticBehaviourTerms);
   const isOtherBiocontrol = hasAny(text, rules.otherBiocontrolTerms);
@@ -188,7 +191,8 @@ export function scoreRelevance(record, config) {
   if (isUrbanRural) score += add(64, "urban-rural mosquito comparison");
   if (isUrbanRural && isLifeHistory) score += add(18, "WP2 trait response");
   if (isEuropean && isLifeHistory) score += add(54, "European mosquito life history");
-  if (isInvertebrateControl) score += add(64, "WP3 invertebrate predator biocontrol");
+  if (isThermalMethod) score += add(48, "transferable mosquito thermal method");
+  if (isInvertebrateControl) score += add(76, "WP3 invertebrate predator biocontrol");
   if (isInvertebrateControl && hasAny(text, ["predation rate", "functional response", "mesocosm", "experiment"])) {
     score += add(16, "WP3 experimental method");
   }
