@@ -380,6 +380,17 @@ h2 {
   font-size: 0.84rem;
 }
 
+.relevance-basis {
+  margin: 0.35rem 0 0.65rem;
+  color: var(--blue-deep);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.relevance-basis:empty {
+  display: none;
+}
+
 .finding,
 .matters,
 .read-first-note {
