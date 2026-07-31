@@ -24,7 +24,7 @@
       <section class="read-first" aria-labelledby="read-first-title">
         <div class="section-heading">
           <h2 id="read-first-title">Most relevant this week</h2>
-          <p>Prioritized for your Belgian urban-rural <i>Culex pipiens</i> research context.</p>
+          <p>Prioritized for your three work packages and European arbovirus watch.</p>
         </div>
         <div class="paper-grid prominent" id="read-first-list"></div>
       </section>
@@ -102,7 +102,7 @@
       <section class="reading-list" aria-labelledby="reading-list-title">
         <div class="section-heading">
           <h2 id="reading-list-title">Local reading list</h2>
-          <p>Saved in this browser only.</p>
+          <p>Saved on this browser and retained when the weekly archive changes.</p>
         </div>
         <div class="export-actions">
           <button id="export-csv" type="button">Export CSV</button>
@@ -113,7 +113,8 @@
 
       <section class="methodology" aria-labelledby="method-title">
         <h2 id="method-title">Methodology</h2>
-        <p>The Monday script searches OpenAlex, Crossref, Europe PMC, and preprint records using editable topic queries. It accepts only DOI-identified records with an earliest verified online-publication date inside the preceding seven days, rejects placeholders and configured exclusions, protects the existing archive when all sources fail, and deduplicates permanently by DOI first and normalized title second.</p>
+        <p>The Monday script searches OpenAlex, Crossref, Europe PMC, and preprint records using editable topic queries. A mosquito genus alone is not enough: papers must match Culex oviposition, urban-rural mosquito comparisons, European mosquito life history, aquatic invertebrate biocontrol, transferable aquatic behaviour, context-dependent biological control, eDNA, or the strict European WNV/SINV watch.</p>
+        <p>It accepts only DOI-identified records with an earliest verified online-publication date inside the preceding seven days, rejects placeholders and configured exclusions, protects the existing archive when all sources fail, and deduplicates permanently by DOI first and normalized title second.</p>
         <p>Preprints are labelled separately. When a preprint later appears as a journal article, matching DOI, title, and preprint metadata are linked so the article is not counted as an entirely new study.</p>
       </section>
     </main>
@@ -129,6 +130,7 @@
         </div>
         <h3></h3>
         <p class="meta"></p>
+        <p class="relevance-basis"></p>
         <p class="summary"></p>
         <dl class="paper-facts"></dl>
         <p class="finding"></p>
@@ -143,6 +145,6 @@
       </article>
     </template>
 
-    <script src="assets/app.js?v=20260730-2" type="module"></script>
+    <script src="assets/app.js?v=20260731-1" type="module"></script>
   </body>
 </html>
