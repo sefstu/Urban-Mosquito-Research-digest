@@ -5,6 +5,7 @@ import {
   hasVerifiedScholarlyIdentity,
   isDuplicate,
   isEuropeanArbovirusRecord,
+  isWnvOrSinvRecord,
   isWithinPrecedingDays,
   findLinkedPreprint,
   matchesExclusionRules,
@@ -53,6 +54,9 @@ test("enforces strict European arbovirus geography", () => {
     title: "West Nile virus circulation in North America",
     abstract: "Local transmission dynamics are analysed."
   }), false);
+  assert.equal(isWnvOrSinvRecord({
+    title: "Urban-rural West Nile virus dynamics in North American mosquitoes"
+  }), true);
 });
 
 test("scores user research context strongly", () => {
@@ -83,8 +87,18 @@ test("links later journal articles to matching preprints", () => {
 test("preserves the current weekly status on an idempotent rerun", () => {
   const weekly = papersForWeeklyStatus([], {
     papers: [
-      { id: "current", week: "2026-07-30", topic: "Mosquito ecology and vector biology" },
-      { id: "older", week: "2026-07-23", topic: "Mosquito ecology and vector biology" }
+      {
+        id: "current",
+        onlinePublicationDate: "2026-07-26",
+        week: "2026-07-28",
+        topic: "Mosquito ecology and vector biology"
+      },
+      {
+        id: "older",
+        onlinePublicationDate: "2026-07-20",
+        week: "2026-07-30",
+        topic: "Mosquito ecology and vector biology"
+      }
     ]
   }, "2026-07-30");
   assert.deepEqual(weekly.map((paper) => paper.id), ["current"]);
@@ -106,23 +120,71 @@ test("rejects placeholders and records without a DOI", () => {
   }), true);
 });
 
-test("strictly limits retrieval to Culex, Aedes and Anopheles", () => {
+test("uses work-package fit rather than mosquito genus alone", () => {
   assert.equal(matchesSpeciesScope({
-    title: "Swimming behaviour in Culex pupae"
+    title: "Culex pipiens oviposition preferences across water volumes"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Urban-rural evolution of thermal tolerance in Aedes mosquitoes"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Thermal tolerance and body size of Anopheles mosquitoes in Spain"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Toxorhynchites predation rate as mosquito biological control"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Temperature variation as a driver of Wolbachia release efficacy in mosquitoes"
   }, config), true);
   assert.equal(matchesSpeciesScope({
     title: "Mosquito eDNA surveillance in aquatic habitats"
+  }, config), true);
+  assert.equal(matchesSpeciesScope({
+    title: "Diversity of insect-specific viruses in Culex mosquitoes from Papua New Guinea"
+  }, config), false);
+  assert.equal(matchesSpeciesScope({
+    title: "Early-evening foraging by Anopheles mosquitoes in Zambia"
+  }, config), false);
+  assert.equal(matchesSpeciesScope({
+    title: "Oviposition activity of Aedes mosquitoes in Brazil"
   }, config), false);
   assert.equal(matchesSpeciesScope({
     title: "Urban-rural common garden in great tits"
   }, config), false);
   assert.equal(matchesSpeciesScope({
-    title: "Nonlinear effects of the digital economy on urban-rural integration",
-    abstract: "A modelling study of cities along the Yangtze River."
+    title: "Nonlinear effects of the digital economy on urban-rural integration"
   }, config), false);
-  assert.equal(matchesSpeciesScope({
-    title: "Crop yield responses in wheat"
-  }, config), false);
+});
+
+test("ranks the user-selected Mbaoma and Drerup papers highly", () => {
+  const mbaoma = {
+    title: "Insight into eco-epidemiological traits of European native vector mosquitoes for disease transmission",
+    abstract: "The review includes Culex pipiens and other European native vectors.",
+    topic: "Mosquito ecology and vector biology"
+  };
+  const drerup = {
+    title: "Distinct Swimming Behaviours in Pupae of Aedes, Anopheles and Culex Mosquitoes",
+    abstract: "A comparative experiment quantified pupal movement.",
+    topic: "Mosquito ecology and vector biology"
+  };
+  assert.equal(matchesSpeciesScope(mbaoma, config), true);
+  assert.equal(matchesSpeciesScope(drerup, config), true);
+  assert.ok(scoreRelevance(mbaoma, config) >= 90);
+  assert.ok(scoreRelevance(drerup, config) >= 75);
+});
+
+test("gives strong transfer scores to predator and thermal biocontrol", () => {
+  const predatorScore = scoreRelevance({
+    title: "Eco-friendly mosquito control using Toxorhynchites brevipalpis",
+    abstract: "An experiment measured larvivorous predation rates against Aedes larvae."
+  }, config);
+  const wolbachiaScore = scoreRelevance({
+    title: "Temperature variation as a driver of Wolbachia release efficacy",
+    abstract: "The model evaluates mosquito control in warming climates.",
+    isPreprint: true
+  }, config);
+  assert.ok(predatorScore >= 80);
+  assert.ok(wolbachiaScore >= 70);
 });
 
 test("applies configured exclusions and refuses zero-hit topic classification", () => {
