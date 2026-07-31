@@ -9,12 +9,12 @@
     "linkPreprintToPublication": true
   },
   "researchContext": {
-    "description": "Eco-evolutionary responses of Culex pipiens mosquitoes along urban-rural gradients in Belgium using common-garden experiments, thermal-tolerance assays, life-history traits, population-genetic structure, eDNA surveillance and mesocosm experiments on predator-based mosquito control.",
-    "rankingPrinciple": "Use these interests to score and explain relevance after applying the strict Culex, Aedes or Anopheles genus filter."
+    "description": "Three Belgian urban-rural mosquito work packages: Culex oviposition preferences across water volume, temperature and surface area; thermal tolerance, body size and energetic content in urban and rural reared populations; and predation rates of aquatic macroinvertebrate predators. Additional watches cover eDNA surveillance and European WNV/SINV dynamics.",
+    "rankingPrinciple": "Research-theme fit determines retrieval. A mosquito genus alone is never enough. Species proximity, European geography and methodological transfer adjust ranking after a paper passes a work-package or additional-watch rule."
   },
   "speciesScope": {
     "priorityGenera": ["Culex", "Aedes", "Anopheles"],
-    "allowOtherMosquitoesForTransferableMethods": false,
+    "allowOtherMosquitoesForTransferableMethods": true,
     "allowNonMosquitoUrbanModels": false,
     "transferableMethodTerms": [
       "urban",
@@ -47,35 +47,48 @@
       "reciprocal transplant"
     ]
   },
+  "retrievalRules": {
+    "mosquitoTerms": ["mosquito", "mosquitoes", "culicidae", "culex", "aedes", "anopheles", "toxorhynchites"],
+    "ovipositionTerms": ["oviposition", "egg laying", "egg-laying", "egg raft", "gravid", "ovitrap", "oviposition site", "habitat choice"],
+    "urbanRuralTerms": ["urban-rural", "urban rural", "rural-urban", "rural urban", "urbanization", "urbanisation", "urban adaptation", "urban evolution"],
+    "lifeHistoryTerms": ["life history", "life-history", "thermal tolerance", "ctmax", "ctmin", "critical thermal", "development time", "development rate", "survival", "body size", "wing length", "fecundity", "longevity", "energetic content", "energy reserve", "lipid", "glycogen", "diapause"],
+    "invertebratePredatorTerms": ["aquatic predator", "macroinvertebrate", "invertebrate predator", "predation rate", "predator-prey", "functional response", "copepod", "notonect", "backswimmer", "dragonfly", "odonata", "dytiscid", "water beetle", "toxorhynchites", "larvivorous"],
+    "aquaticBehaviourTerms": ["swimming behaviour", "swimming behavior", "pupal movement", "pupal mobility", "larval movement", "aquatic behaviour", "aquatic behavior"],
+    "otherBiocontrolTerms": ["biological control", "biocontrol", "wolbachia", "bacillus thuringiensis israelensis", "bti", "microbial control"],
+    "ecologicalContextTerms": ["temperature", "thermal", "climate", "warming", "urban", "rural", "habitat", "ecological", "ecotope", "field efficacy"],
+    "ednaTerms": ["edna", "environmental dna"],
+    "populationTerms": ["population structure", "population genetic", "gene flow", "hybridization", "hybridisation", "biotype", "form pipiens", "form molestus"],
+    "europeanVectorTraitTerms": ["eco-epidemiological trait", "ecological trait", "vector trait", "native vector mosquito", "disease transmission"]
+  },
   "topics": [
     {
       "name": "Urban evolution and eco-evolution",
-      "queries": ["urban adaptation mosquito", "urban evolution mosquito", "urban rural common garden", "urban eco-evolution vector"],
+      "queries": ["urban rural mosquito comparison", "urban adaptation mosquito", "urban evolution mosquito", "urban rural mosquito common garden"],
       "includeTerms": ["urban", "rural", "adaptation", "evolution", "common garden", "reciprocal transplant"],
       "weight": 14
     },
     {
       "name": "Thermal adaptation and tolerance",
-      "queries": ["mosquito CTmax CTmin", "Culex pipiens thermal tolerance", "temperature dependent life history mosquito"],
+      "queries": ["mosquito CTmax CTmin Europe", "Culex pipiens thermal tolerance Europe", "European mosquito temperature life history", "urban rural mosquito body size energetic content"],
       "includeTerms": ["CTmax", "CTmin", "thermal tolerance", "temperature", "development time", "survival", "body size"],
       "weight": 13
     },
     {
       "name": "Mosquito ecology and vector biology",
-      "queries": ["Culex pipiens ecology", "mosquito vector ecology", "mosquito life history urban"],
-      "includeTerms": ["Culex pipiens", "Culex", "Aedes", "Anopheles", "mosquito", "vector ecology", "life history", "gene flow", "population structure", "swimming behaviour"],
+      "queries": ["European native vector mosquito ecological traits", "mosquito pupal swimming behaviour", "urban rural mosquito population structure", "Culex pipiens life history Europe"],
+      "includeTerms": ["eco-epidemiological", "native vector mosquito", "life history", "gene flow", "population structure", "swimming behaviour", "swimming behavior", "pupal movement"],
       "weight": 12
     },
     {
       "name": "Oviposition and habitat choice",
-      "queries": ["mosquito oviposition cues", "Culex oviposition habitat choice", "urban mosquito breeding site management"],
-      "includeTerms": ["oviposition", "habitat choice", "breeding site", "oviposition cues", "management"],
+      "queries": ["Culex pipiens oviposition preference", "Culex oviposition water temperature", "Culex oviposition water volume surface area", "urban rural Culex oviposition"],
+      "includeTerms": ["oviposition", "egg raft", "gravid", "ovitrap", "habitat choice", "breeding site"],
       "weight": 10
     },
     {
       "name": "Mosquito biological control",
-      "queries": ["mosquito predators biological control", "predator mosquito mesocosm", "context dependent predator efficiency mosquito", "mosquito Bti larvicide field efficacy"],
-      "includeTerms": ["predator", "biological control", "mesocosm", "larval mosquito", "context dependent", "Bacillus thuringiensis israelensis", "Bti", "larvicide"],
+      "queries": ["aquatic macroinvertebrate predator mosquito", "invertebrate predator mosquito biological control", "Toxorhynchites mosquito larval control", "copepod mosquito predation rate", "predator mosquito mesocosm", "temperature Wolbachia mosquito control", "mosquito Bti ecological field efficacy"],
+      "includeTerms": ["aquatic predator", "macroinvertebrate", "invertebrate predator", "predation rate", "functional response", "Toxorhynchites", "copepod", "biological control", "mesocosm", "Wolbachia", "Bacillus thuringiensis israelensis", "Bti"],
       "weight": 11
     },
     {
@@ -123,21 +136,5 @@
       "weight": 15
     }
   ],
-  "relevanceWeights": {
-    "Culex pipiens": 20,
-    "Belgium or nearby western Europe": 8,
-    "urban-rural gradient": 18,
-    "common garden or reciprocal transplant": 16,
-    "CTmax CTmin thermal tolerance": 15,
-    "temperature dependent life history": 12,
-    "population genetic structure or gene flow": 12,
-    "oviposition": 10,
-    "predator biological control mesocosm": 13,
-    "eDNA surveillance": 12,
-    "European WNV or SINV": 16,
-    "vector competence": 12,
-    "avian reservoir host interaction": 8,
-    "methodological transfer value": 7
-  },
   "exclusionTerms": ["patent", "conference abstract only", "book review", "editorial without data"]
 }
