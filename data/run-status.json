@@ -1,24 +1,24 @@
 {
-  "runDate": "2026-07-31",
-  "windowStart": "2026-07-24",
-  "windowEnd": "2026-07-30",
-  "completedAt": "2026-07-31T15:04:43.876Z",
-  "acceptedCount": 4,
+  "runDate": "2026-08-03",
+  "windowStart": "2026-07-27",
+  "windowEnd": "2026-08-02",
+  "completedAt": "2026-08-03T16:01:31.803Z",
+  "acceptedCount": 6,
   "topics": [
     {
       "name": "Urban evolution and eco-evolution",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     },
     {
       "name": "Thermal adaptation and tolerance",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     },
     {
       "name": "Mosquito ecology and vector biology",
-      "count": 3,
-      "message": "3 new papers identified this week"
+      "count": 2,
+      "message": "2 new papers identified this week"
     },
     {
       "name": "Oviposition and habitat choice",
@@ -37,25 +37,25 @@
     },
     {
       "name": "European arbovirus dynamics",
-      "count": 1,
-      "message": "1 new paper identified this week"
+      "count": 2,
+      "message": "2 new papers identified this week"
     }
   ],
   "sources": {
     "OpenAlex": {
       "requests": 31,
       "failures": 0,
-      "records": 187
+      "records": 188
     },
     "Crossref": {
       "requests": 31,
-      "failures": 9,
-      "records": 2155
+      "failures": 7,
+      "records": 2368
     },
     "Europe PMC": {
       "requests": 31,
       "failures": 0,
-      "records": 3
+      "records": 1
     }
   }
 }
