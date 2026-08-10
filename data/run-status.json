@@ -1,24 +1,24 @@
 {
-  "runDate": "2026-08-03",
-  "windowStart": "2026-07-27",
-  "windowEnd": "2026-08-02",
-  "completedAt": "2026-08-03T16:01:31.803Z",
-  "acceptedCount": 6,
+  "runDate": "2026-08-10",
+  "windowStart": "2026-08-03",
+  "windowEnd": "2026-08-09",
+  "completedAt": "2026-08-10T10:44:34.861Z",
+  "acceptedCount": 7,
   "topics": [
     {
       "name": "Urban evolution and eco-evolution",
-      "count": 1,
-      "message": "1 new paper identified this week"
+      "count": 4,
+      "message": "4 new papers identified this week"
     },
     {
       "name": "Thermal adaptation and tolerance",
-      "count": 1,
-      "message": "1 new paper identified this week"
+      "count": 0,
+      "message": "No new papers identified this week"
     },
     {
       "name": "Mosquito ecology and vector biology",
-      "count": 2,
-      "message": "2 new papers identified this week"
+      "count": 0,
+      "message": "No new papers identified this week"
     },
     {
       "name": "Oviposition and habitat choice",
@@ -27,8 +27,8 @@
     },
     {
       "name": "Mosquito biological control",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     },
     {
       "name": "eDNA surveillance",
@@ -45,17 +45,17 @@
     "OpenAlex": {
       "requests": 31,
       "failures": 0,
-      "records": 188
+      "records": 149
     },
     "Crossref": {
       "requests": 31,
-      "failures": 7,
-      "records": 2368
+      "failures": 15,
+      "records": 1600
     },
     "Europe PMC": {
       "requests": 31,
       "failures": 0,
-      "records": 1
+      "records": 2
     }
   }
 }
