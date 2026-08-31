@@ -1,8 +1,8 @@
 {
-  "runDate": "2026-08-24",
-  "windowStart": "2026-08-17",
-  "windowEnd": "2026-08-23",
-  "completedAt": "2026-08-24T08:31:37.660Z",
+  "runDate": "2026-08-31",
+  "windowStart": "2026-08-24",
+  "windowEnd": "2026-08-30",
+  "completedAt": "2026-08-31T06:16:30.300Z",
   "acceptedCount": 1,
   "topics": [
     {
@@ -27,13 +27,13 @@
     },
     {
       "name": "Mosquito biological control",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     },
     {
       "name": "eDNA surveillance",
-      "count": 1,
-      "message": "1 new paper identified this week"
+      "count": 0,
+      "message": "No new papers identified this week"
     },
     {
       "name": "European arbovirus dynamics",
@@ -49,13 +49,13 @@
     },
     "Crossref": {
       "requests": 31,
-      "failures": 2,
-      "records": 2775
+      "failures": 15,
+      "records": 1600
     },
     "Europe PMC": {
       "requests": 31,
       "failures": 0,
-      "records": 1
+      "records": 4
     }
   }
 }
