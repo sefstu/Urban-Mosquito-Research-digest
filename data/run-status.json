@@ -1,9 +1,9 @@
 {
-  "runDate": "2026-10-19",
-  "windowStart": "2026-10-12",
-  "windowEnd": "2026-10-18",
-  "completedAt": "2026-10-19T13:04:29.985Z",
-  "acceptedCount": 1,
+  "runDate": "2026-10-26",
+  "windowStart": "2026-10-19",
+  "windowEnd": "2026-10-25",
+  "completedAt": "2026-10-26T14:12:54.130Z",
+  "acceptedCount": 5,
   "topics": [
     {
       "name": "Urban evolution and eco-evolution",
@@ -12,8 +12,8 @@
     },
     {
       "name": "Thermal adaptation and tolerance",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     },
     {
       "name": "Mosquito ecology and vector biology",
@@ -27,8 +27,8 @@
     },
     {
       "name": "Mosquito biological control",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 2,
+      "message": "2 new papers identified this week"
     },
     {
       "name": "eDNA surveillance",
@@ -37,25 +37,25 @@
     },
     {
       "name": "European arbovirus dynamics",
-      "count": 0,
-      "message": "No new papers identified this week"
+      "count": 1,
+      "message": "1 new paper identified this week"
     }
   ],
   "sources": {
     "OpenAlex": {
       "requests": 31,
       "failures": 0,
-      "records": 205
+      "records": 228
     },
     "Crossref": {
       "requests": 31,
       "failures": 0,
-      "records": 2979
+      "records": 3006
     },
     "Europe PMC": {
       "requests": 31,
       "failures": 0,
-      "records": 18
+      "records": 33
     }
   }
 }
